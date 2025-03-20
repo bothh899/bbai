@@ -19,20 +19,20 @@
             --foreground: #111827;
             --card: #ffffff;
             --card-foreground: #111827;
-            --primary: #4f46e5;
-            --primary-hover: #6366f1;
+            --primary: #120aa3;
+            --primary-hover: #1114aa;
             --primary-foreground: #ffffff;
             --secondary: #f9fafb;
-            --secondary-foreground: #4f46e5;
-            --muted: #f9fafb;
+            --secondary-foreground: #0d0961;
+            --muted: #260769;
             --muted-foreground: #6b7280;
             --accent: #f3f4f6;
-            --accent-foreground: #4f46e5;
+            --accent-foreground: #0e0960;
             --destructive: #ef4444;
             --destructive-foreground: #ffffff;
             --border: #e5e7eb;
-            --input: #e5e7eb;
-            --ring: #4f46e5;
+            --input: #124abc;
+            --ring: #161089;
 
             /* Sizing and spacing */
             --radius: 0.75rem;
@@ -423,7 +423,7 @@
             display: flex;
             align-items: center;
             gap: 0.25rem;
-            padding: 0.75rem;
+            padding: 0.35rem;
             max-width: 80px;
             background-color: var(--secondary);
             border-radius: 1.25rem;
@@ -479,7 +479,7 @@
         /* Message input with stable positioning */
         .message-input-container {
             border-top: 1px solid var(--border);
-            padding: 1.25rem;
+            padding: 10px;
             background-color: none;
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
@@ -533,7 +533,7 @@
         .messages-area {
             flex: 1;
             overflow-y: auto;
-            padding: 1.5rem;
+            padding: 1rem;
             padding-bottom: 0.5rem;
             /* Add some padding to prevent content from being hidden behind input */
             display: flex;
@@ -723,16 +723,16 @@
         </header>
 
         <main class="main-content">
-            <section class="intro-section">
-                <div class="intro-content">
-                    <span class="badge">AI-Powered Conversations</span>
-                    <h1>Get Insightful Answers to All Your Questions</h1>
-                    <p>
+            <!-- <section class="intro-section">
+                <div class="intro-content"> -->
+            <!-- <span class="badge">AI-Powered Conversations</span> -->
+            <!-- <h1>BAI</h1> -->
+            <!-- <p>
                         Experience the future of knowledge sharing with our advanced AI assistant designed to provide
                         thoughtful, accurate responses to your inquiries.
-                    </p>
-                </div>
-            </section>
+                    </p> -->
+            <!-- </div>
+            </section> -->
 
             <div class="chat-container glass-card">
                 <div class="messages-area" id="messagesContainer">
@@ -1179,13 +1179,64 @@
                         "ខ្ញុំសោកស្តាយដែលឮដូច្នោះ។ តើមានអ្វីដែលខ្ញុំអាចជួយបានទេ?",
                         "ឮហាក់ដូចជាមានបញ្ហាប្រឈម។ តើអ្នកចង់និយាយបន្ថែមអំពីវាទេ?"
                     ]
+                },
+                // FAQ responses - Add this new section
+                faqs: {
+                    en: {
+                        // Format: 'question keyword': 'answer'
+                        'open hours': "We are open Monday to Friday from 9am to 5pm.",
+                        'location': "Our main office is located at 123 Main Street, Downtown.",
+                        'contact': "You can contact us at support@example.com or call (555) 123-4567.",
+                        'pricing': "Our basic plan starts at $9.99/month. Premium plans are available from $19.99/month.",
+                        'refund policy': "We offer a 30-day money-back guarantee on all our products and services.",
+                        'shipping': "Standard shipping takes 3-5 business days. Express shipping (1-2 days) is available for an additional fee.",
+                        'return policy': "Items can be returned within 30 days of purchase. They must be in original condition with tags attached.",
+                        'payment methods': "We accept all major credit cards, PayPal, and bank transfers.",
+                        'warranty': "All our products come with a 1-year limited warranty against manufacturing defects.",
+                        'discount': "We offer a 10% discount for first-time customers. Use code WELCOME10 at checkout."
+                    },
+                    km: {
+                        'open hours': "យើងបើកចាប់ពីថ្ងៃច័ន្ទដល់ថ្ងៃសុក្រពីម៉ោង ៩ព្រឹកដល់ម៉ោង ៥ល្ងាច។",
+                        'location': "ការិយាល័យកណ្តាលរបស់យើងមានទីតាំងនៅ ១២៣ ផ្លូវមេន ក្នុងទីក្រុង។",
+                        'contact': "អ្នកអាចទាក់ទងមកយើងតាមរយៈ support@example.com ឬហៅទូរស័ព្ទមកលេខ (៥៥៥) ១២៣-៤៥៦៧",
+                        'pricing': "ផែនការមូលដ្ឋានរបស់យើងចាប់ផ្តើមពី $៩.៩៩/ខែ។ ផែនការពិសេសមានតម្លៃចាប់ពី $១៩.៩៩/ខែ។",
+                        'refund policy': "យើងផ្តល់ជូនការធានាសងប្រាក់វិញក្នុងរយៈពេល ៣០ ថ្ងៃលើផលិតផល និងសេវាកម្មទាំងអស់របស់យើង។",
+                        'shipping': "ការដឹកជញ្ជូនស្តង់ដារចំណាយពេល ៣-៥ ថ្ងៃធ្វើការ។ ការដឹកជញ្ជូនរហ័ស (១-២ ថ្ងៃ) មានសម្រាប់ថ្លៃបន្ថែម។",
+                        'return policy': "ទំនិញអាចត្រូវបានប្រគល់មកវិញក្នុងរយៈពេល ៣០ ថ្ងៃនៃការទិញ។ ពួកវាត្រូវតែស្ថិតក្នុងសភាពដើមជាមួយនឹងស្លាកភ្ជាប់។",
+                        'payment methods': "យើងទទួលយកកាតឥណទានសំខាន់ៗទាំងអស់ PayPal និងការផ្ទេរតាមធនាគារ។",
+                        'warranty': "ផលិតផលទាំងអស់របស់យើងមានការធានាមានកំណត់ ១ ឆ្នាំប្រឆាំងនឹងកំហុសក្នុងការផលិត។",
+                        'តើលោក ហ៊ុន ម៉ាណែត នាយករដ្ឋមន្រ្តីរបស់កម្ពុជា ជានរណា?': "លោក ហ៊ុន ម៉ាណែត នាយករដ្ឋមន្ត្រីតែងតាំង ឈរនៅមុខរដ្ឋសភាជាតិ មុនពេលចូលរួមសម័យប្រជុំដំបូង សម្រាប់នីតិកាលទី ៧ នៃរដ្ឋសភា រាជធានីភ្នំពេញ ថ្ងៃទី ២១ ខែសីហា ឆ្នាំ ២០២៣។",
+                        'discount': "យើងផ្តល់ជូនការបញ្ចុះតម្លៃ ១០% សម្រាប់អតិថិជនលើកដំបូង។ ប្រើកូដ WELCOME10 នៅពេលទូទាត់។"
+                    }
                 }
+            },
+
+            // Check if a user message matches any FAQ
+            checkForFAQ(message, lang) {
+                // Default to English if language not specified
+                const language = lang || 'en';
+                const lowerMessage = message.toLowerCase();
+
+                // Check if message contains any FAQ keywords
+                for (const [keyword, answer] of Object.entries(this.responses.faqs[language])) {
+                    if (lowerMessage.includes(keyword.toLowerCase())) {
+                        return answer;
+                    }
+                }
+
+                return null; // No FAQ match found
             },
 
             generate(userMessage) {
                 // Context tracking and enhanced response generation
                 const analysis = LanguageProcessor.detectIntent(userMessage);
                 const lang = analysis.lang || (LanguageProcessor.isKhmer(userMessage) ? 'km' : 'en');
+
+                // First check if this matches any FAQ
+                const faqResponse = this.checkForFAQ(userMessage, lang);
+                if (faqResponse) {
+                    return faqResponse;
+                }
 
                 let responseType = analysis.intent;
 
