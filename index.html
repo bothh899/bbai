@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Chat Assistant</title>
+    <meta name="description" content="Get Insightful Answers to All Your Questions" />
+    <meta name="author" content="Lovable" />
+    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Base styles with CSS variables */
+        :root {
+            /* Color system with more modern palette */
+            --background: #ffffff;
+            --foreground: #111827;
+            --card: #ffffff;
+            --card-foreground: #111827;
+            --primary: #4f46e5;
+            --primary-hover: #6366f1;
+            --primary-foreground: #ffffff;
+            --secondary: #f9fafb;
+            --secondary-foreground: #4f46e5;
+            --muted: #f9fafb;
+            --muted-foreground: #6b7280;
+            --accent: #f3f4f6;
+            --accent-foreground: #4f46e5;
+            --destructive: #ef4444;
+            --destructive-foreground: #ffffff;
+            --border: #e5e7eb;
+            --input: #e5e7eb;
+            --ring: #4f46e5;
+
+            /* Sizing and spacing */
+            --radius: 0.75rem;
+            --header-height: 4rem;
+            --max-width: 1200px;
+            --side-padding: 1.5rem;
+
+            /* Animation speeds */
+            --transition-fast: 0.15s;
+            --transition-normal: 0.25s;
+            --transition-slow: 0.4s;
+
+            /* Shadows */
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-focus: 0 0 0 4px rgba(79, 70, 229, 0.2);
+        }
+
+        .dark-theme {
+            --background: #0f172a;
+            --foreground: #f8fafc;
+            --card: #1e293b;
+            --card-foreground: #f8fafc;
+            --primary: #818cf8;
+            --primary-hover: #a5b4fc;
+            --primary-foreground: #ffffff;
+            --secondary: #1e293b;
+            --secondary-foreground: #f8fafc;
+            --muted: #1e293b;
+            --muted-foreground: #94a3b8;
+            --accent: #1e293b;
+            --accent-foreground: #f8fafc;
+            --destructive: #dc2626;
+            --destructive-foreground: #ffffff;
+            --border: #334155;
+            --input: #1e293b;
+            --ring: #818cf8;
+
+            /* Dark mode shadows */
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+            --shadow-focus: 0 0 0 4px rgba(129, 140, 248, 0.3);
+        }
+
+        /* CSS Reset with modern approach */
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            border-color: var(--border);
+        }
+
+        html {
+            font-size: 16px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background-color: var(--background);
+            color: var(--foreground);
+            line-height: 1.6;
+            letter-spacing: -0.011em;
+            transition: background-color var(--transition-normal) ease, color var(--transition-normal) ease;
+            min-height: 100vh;
+            min-height: 100dvh;
+            /* Modern viewport height for mobile */
+        }
+
+        /* Layout */
+        .app-container {
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Container with responsive gutters */
+        .container-content {
+            max-width: var(--max-width);
+            width: 100%;
+            margin: 0 auto;
+            padding: 0 var(--side-padding);
+        }
+
+        /* Header with modern styling */
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            background-color: rgba(255, 255, 255, 0.8);
+            border-bottom: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            height: var(--header-height);
+            display: flex;
+            align-items: center;
+        }
+
+        .dark-theme .header {
+            background-color: rgba(15, 23, 42, 0.8);
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .logo {
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: var(--primary);
+            letter-spacing: -0.03em;
+        }
+
+        /* Modern navigation styling */
+        .main-nav ul {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .main-nav a {
+            text-decoration: none;
+            color: var(--foreground);
+            opacity: 0.8;
+            transition: all var(--transition-fast);
+            font-weight: 500;
+            position: relative;
+            padding: 0.5rem 0;
+        }
+
+        .main-nav a:hover,
+        .main-nav a.active {
+            opacity: 1;
+            color: var(--primary);
+        }
+
+        .main-nav a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: 0;
+            left: 0;
+            background-color: var(--primary);
+            transition: width var(--transition-normal) cubic-bezier(0.65, 0, 0.35, 1);
+        }
+
+        .main-nav a:hover::after,
+        .main-nav a.active::after {
+            width: 100%;
+        }
+
+        /* Theme toggle with improved interaction */
+        .theme-toggle {
+            background: none;
+            border: none;
+            color: var(--foreground);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            transition: all var(--transition-fast);
+        }
+
+        .theme-toggle:hover {
+            background-color: var(--accent);
+            transform: rotate(15deg);
+        }
+
+        .theme-toggle:active {
+            transform: scale(0.92) rotate(15deg);
+        }
+
+        .theme-toggle .sun-icon {
+            display: none;
+        }
+
+        .theme-toggle .moon-icon {
+            display: block;
+        }
+
+        .dark-theme .theme-toggle .sun-icon {
+            display: block;
+        }
+
+        .dark-theme .theme-toggle .moon-icon {
+            display: none;
+        }
+
+        /* Main content with improved spacing */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 2.5rem var(--side-padding);
+            width: 100%;
+            margin: 0 auto;
+            max-width: var(--max-width);
+            gap: 2.5rem;
+        }
+
+        /* Intro section with modern typography and animation */
+        .intro-section {
+            text-align: center;
+            animation: fadeIn 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .intro-content {
+            max-width: 36rem;
+            margin: 0 auto;
+        }
+
+        /* Modern badge styling */
+        .badge {
+            display: inline-block;
+            padding: 0.375rem 0.875rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background-color: var(--primary);
+            color: var(--primary-foreground);
+            border-radius: 9999px;
+            margin-bottom: 1.25rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* Modern heading with gradient */
+        .intro-content h1 {
+            font-size: 2.75rem;
+            font-weight: 800;
+            margin-bottom: 1.25rem;
+            line-height: 1.1;
+            letter-spacing: -0.03em;
+            background: linear-gradient(135deg, var(--primary) 0%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-fill-color: transparent;
+        }
+
+        .intro-content p {
+            color: var(--muted-foreground);
+            font-size: 1.125rem;
+            font-weight: 400;
+            max-width: 30rem;
+            margin: 0 auto;
+        }
+
+        /* Glass card with improved styling */
+        .glass-card {
+            background-color: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-md);
+            transition: all var(--transition-normal) cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .glass-card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+
+        .dark-theme .glass-card {
+            background-color: rgba(30, 41, 59, 0.75);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        /* Chat container with better proportions */
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            height: 65vh;
+            border-radius: var(--radius);
+        }
+
+        .messages-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary) transparent;
+        }
+
+        /* Modern scrollbar styling */
+        .messages-area::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        .messages-area::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .messages-area::-webkit-scrollbar-thumb {
+            background-color: var(--primary);
+            opacity: 0.2;
+            border-radius: 9999px;
+        }
+
+        .messages-area::-webkit-scrollbar-thumb:hover {
+            opacity: 0.4;
+            background-color: var(--primary-hover);
+        }
+
+        /* Message bubbles with improved styling */
+        .message {
+            display: flex;
+            max-width: 80%;
+            animation: messageAppear 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        @keyframes messageAppear {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .user-message {
+            align-self: flex-end;
+        }
+
+        .ai-message {
+            align-self: flex-start;
+        }
+
+        .message-content {
+            padding: 1rem 1.25rem;
+            border-radius: 1.25rem;
+            overflow-wrap: break-word;
+            box-shadow: var(--shadow-sm);
+            line-height: 1.5;
+        }
+
+        .user-message .message-content {
+            background-color: var(--primary);
+            color: var(--primary-foreground);
+            border-bottom-right-radius: 0.25rem;
+        }
+
+        .ai-message .message-content {
+            background-color: var(--secondary);
+            color: var(--secondary-foreground);
+            border-bottom-left-radius: 0.25rem;
+        }
+
+        /* Typing indicator with smoother animation */
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.75rem;
+            max-width: 80px;
+            background-color: var(--secondary);
+            border-radius: 1.25rem;
+            border-bottom-left-radius: 0.25rem;
+            animation: slideUp 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+            align-self: flex-start;
+            box-shadow: var(--shadow-sm);
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(10px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            opacity: 0.6;
+            animation: pulseDot 1.5s infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.3s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.6s;
+        }
+
+        @keyframes pulseDot {
+
+            0%,
+            100% {
+                opacity: 0.4;
+                transform: scale(0.8);
+            }
+
+            50% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* Message input with stable positioning */
+        .message-input-container {
+            border-top: 1px solid var(--border);
+            padding: 1.25rem;
+            background-color: none;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom-left-radius: var(--radius);
+            border-bottom-right-radius: var(--radius);
+            position: sticky;
+            /* Make it stick to the bottom */
+            bottom: 0;
+            z-index: 10;
+            /* Ensure it stays above other content */
+        }
+
+        .dark-theme .message-input-container {
+            background-color: rgba(30, 41, 59, 0.8);
+        }
+
+        .message-form {
+            position: relative;
+            max-width: 48rem;
+            margin: 0 auto;
+        }
+
+        .message-input {
+            width: 100%;
+            padding: 0.9rem 1.25rem;
+            padding-right: 3.5rem;
+            background-color: var(--background);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            font-family: inherit;
+            font-size: 1rem;
+            color: var(--foreground);
+            transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+            /* Only transition these properties */
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            /* Ensure stable positioning */
+        }
+
+        .dark-theme .message-input {
+            background-color: rgba(15, 23, 42, 0.8);
+        }
+
+        .message-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: var(--shadow-focus);
+        }
+
+        /* Ensure the messages area doesn't push the input */
+        .messages-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+            padding-bottom: 0.5rem;
+            /* Add some padding to prevent content from being hidden behind input */
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary) transparent;
+            margin-bottom: 0;
+            /* Ensure no margin pushing the input */
+        }
+
+        /* Modify the chat container to ensure proper layout */
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            height: 65vh;
+            border-radius: var(--radius);
+            position: relative;
+            /* Establish positioning context */
+        }
+
+        /* Ensure animations don't affect layout */
+        @keyframes messageAppear {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Send button with better interaction */
+        .send-button {
+            position: absolute;
+            right: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: var(--primary);
+            color: var(--primary-foreground);
+            border: none;
+            border-radius: calc(var(--radius) - 0.25rem);
+            width: 2.5rem;
+            height: 2.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .send-button:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-50%) scale(1.05);
+        }
+
+        .send-button:active {
+            transform: translateY(-50%) scale(0.95);
+        }
+
+        .send-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: translateY(-50%) scale(1);
+        }
+
+        /* Responsive styles with mobile-first approach */
+        @media (max-width: 768px) {
+            :root {
+                --side-padding: 1rem;
+            }
+
+            .intro-content h1 {
+                font-size: 2rem;
+            }
+
+            .message {
+                max-width: 90%;
+            }
+
+            .chat-container {
+                height: 60vh;
+            }
+
+            .main-content {
+                padding-top: 1.5rem;
+                padding-bottom: 1.5rem;
+                gap: 1.5rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .main-nav {
+                display: none;
+            }
+
+            .intro-content h1 {
+                font-size: 1.75rem;
+            }
+
+            .badge {
+                font-size: 0.65rem;
+                padding: 0.25rem 0.625rem;
+            }
+
+            .chat-container {
+                height: 70vh;
+            }
+
+            .message-input {
+                padding: 0.75rem 1rem;
+                padding-right: 3.25rem;
+            }
+
+            .send-button {
+                width: 2.25rem;
+                height: 2.25rem;
+            }
+        }
+
+        /* For smaller devices */
+        @media (max-width: 360px) {
+            .intro-content h1 {
+                font-size: 1.5rem;
+            }
+
+            .intro-content p {
+                font-size: 0.938rem;
+            }
+
+            .message-content {
+                padding: 0.75rem 1rem;
+            }
+        }
+
+        /* Support for reduced motion preferences */
+        @media (prefers-reduced-motion: reduce) {
+
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <header class="header">
+            <div class="container-content header-content">
+                <div class="logo">AI Chat Assistant</div>
+                <nav class="main-nav">
+                    <ul>
+                        <li><a href="#" class="active">Home</a></li>
+                        <li><a href="#">Features</a></li>
+                        <li><a href="#">About</a></li>
+                    </ul>
+                </nav>
+                <button class="theme-toggle" id="themeToggle">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="sun-icon">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="moon-icon">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <section class="intro-section">
+                <div class="intro-content">
+                    <span class="badge">AI-Powered Conversations</span>
+                    <h1>Get Insightful Answers to All Your Questions</h1>
+                    <p>
+                        Experience the future of knowledge sharing with our advanced AI assistant designed to provide
+                        thoughtful, accurate responses to your inquiries.
+                    </p>
+                </div>
+            </section>
+
+            <div class="chat-container glass-card">
+                <div class="messages-area" id="messagesContainer">
+                    <!-- Messages will be added dynamically by JavaScript -->
+                    <div class="message ai-message">
+                        <div class="message-content">
+                            <p>Hello! I'm your AI assistant. How can I help you today?</p>
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+            <div class="message-input-container">
+                <form id="messageForm" class="message-form">
+                    <input type="text" id="messageInput" class="message-input" placeholder="Ask a question..."
+                        autocomplete="off">
+                    <button type="submit" class="send-button" id="sendButton" disabled>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                        </svg>
+                    </button>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS VERY COMMENT! -->
+    <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
+    <script src="script.js"></script>
+
+    <script>
+        // DOM Elements
+        const themeToggle = document.getElementById('themeToggle');
+        const messagesContainer = document.getElementById('messagesContainer');
+        const messageForm = document.getElementById('messageForm');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+
+        // Theme Management with modern best practices
+        const ThemeManager = {
+            STORAGE_KEY: 'theme',
+            THEME_DARK: 'dark-theme',
+
+            init() {
+                const savedTheme = localStorage.getItem(this.STORAGE_KEY);
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+                if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+                    document.body.classList.add(this.THEME_DARK);
+                }
+
+                // Listen for system theme changes
+                window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+                    if (!localStorage.getItem(this.STORAGE_KEY)) {
+                        document.body.classList.toggle(this.THEME_DARK, e.matches);
+                    }
+                });
+
+                themeToggle.addEventListener('click', this.toggle.bind(this));
+            },
+
+            toggle() {
+                const isDark = document.body.classList.toggle(this.THEME_DARK);
+                localStorage.setItem(this.STORAGE_KEY, isDark ? 'dark' : 'light');
+            }
+        };
+
+        // Chat UI Utilities
+        const ChatUI = {
+            // Threshold in pixels to determine if user is near bottom
+            SCROLL_THRESHOLD: 100,
+            // Track if user has manually scrolled up
+            userScrolledUp: false,
+            // Scroll to bottom button element
+            scrollButton: null,
+
+            init() {
+                // Create scroll to bottom button
+                this.createScrollButton();
+
+                // Add scroll event listener to detect manual scrolling
+                messagesContainer.addEventListener('scroll', this.handleScroll.bind(this));
+            },
+
+            createScrollButton() {
+                this.scrollButton = document.createElement('button');
+                this.scrollButton.className = 'scroll-to-bottom-btn';
+                this.scrollButton.innerHTML = '↓';
+                this.scrollButton.title = 'Scroll to bottom';
+                this.scrollButton.style.display = 'none';
+                this.scrollButton.addEventListener('click', () => this.scrollToBottom(true));
+
+                // Position the button at the bottom right of messages container
+                this.scrollButton.style.position = 'absolute';
+                this.scrollButton.style.right = '20px';
+                this.scrollButton.style.bottom = '20px';
+                this.scrollButton.style.borderRadius = '50%';
+                this.scrollButton.style.width = '40px';
+                this.scrollButton.style.height = '40px';
+                this.scrollButton.style.fontSize = '20px';
+                this.scrollButton.style.border = 'none';
+                this.scrollButton.style.backgroundColor = '#007bff';
+                this.scrollButton.style.color = 'white';
+                this.scrollButton.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+                this.scrollButton.style.cursor = 'pointer';
+                this.scrollButton.style.zIndex = '1000';
+
+                // Add button to the page
+                document.body.appendChild(this.scrollButton);
+            },
+
+            handleScroll() {
+                const { scrollHeight, scrollTop, clientHeight } = messagesContainer;
+                const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
+
+                // Update scroll state
+                this.userScrolledUp = distanceFromBottom > this.SCROLL_THRESHOLD;
+
+                // Toggle scroll button visibility
+                this.scrollButton.style.display = this.userScrolledUp ? 'block' : 'none';
+            },
+
+            createTypingIndicator() {
+                const typingIndicator = document.createElement('div');
+                typingIndicator.className = 'typing-indicator';
+                typingIndicator.innerHTML = `
+      <div class="typing-dot"></div>
+      <div class="typing-dot"></div>
+      <div class="typing-dot"></div>
+    `;
+                this.appendToChat(typingIndicator);
+                return typingIndicator;
+            },
+
+            createMessage(content, isUser = false) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
+
+                const messageContent = document.createElement('div');
+                messageContent.className = 'message-content';
+
+                const messageParagraph = document.createElement('p');
+                messageParagraph.textContent = content;
+
+                messageContent.appendChild(messageParagraph);
+                messageDiv.appendChild(messageContent);
+
+                return messageDiv;
+            },
+
+            appendToChat(element) {
+                // Add the new element to the messages container
+                messagesContainer.appendChild(element);
+
+                // Check if we should auto-scroll before adding the new element
+                const shouldAutoScroll = !this.userScrolledUp;
+
+                // Only auto-scroll if the user hasn't scrolled up
+                if (shouldAutoScroll) {
+                    this.scrollToBottom(true);
+                }
+
+                // If it's a user message or AI response (not typing indicator), 
+                // ensure we're at the bottom
+                if (element.classList &&
+                    (element.classList.contains('user-message') ||
+                        element.classList.contains('ai-message'))) {
+                    // Force scroll to bottom with a slight delay to ensure rendering completes
+                    setTimeout(() => {
+                        if (!this.userScrolledUp) {
+                            this.scrollToBottom(true);
+                        }
+                    }, 50);
+                }
+            },
+
+            addMessage(content, isUser = false) {
+                const messageElement = this.createMessage(content, isUser);
+                this.appendToChat(messageElement);
+
+                // Force an additional scroll to bottom after a short delay
+                // This ensures scrolling works even if content changes size after rendering
+                setTimeout(() => {
+                    if (!this.userScrolledUp) {
+                        this.scrollToBottom(true);
+                    }
+                }, 100);
+            },
+
+            scrollToBottom(smooth = false) {
+                if (smooth) {
+                    messagesContainer.scrollTo({
+                        top: messagesContainer.scrollHeight,
+                        behavior: 'smooth'
+                    });
+                } else {
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                }
+
+                // Reset user scrolled state
+                this.userScrolledUp = false;
+
+                // Hide scroll button
+                if (this.scrollButton) {
+                    this.scrollButton.style.display = 'none';
+                }
+            },
+
+            updateSendButtonState() {
+                sendButton.disabled = !messageInput.value.trim();
+            },
+
+            setInitialGreeting() {
+                const isKhmerLanguage = navigator.language && navigator.language.startsWith('km');
+                const initialGreeting = isKhmerLanguage
+                    ? "សួស្តី! ខ្ញុំជាជំនួយការ AI របស់អ្នក។ តើខ្ញុំអាចជួយអ្នកបានយ៉ាងដូចម្តេចថ្ងៃនេះ?"
+                    : "Hello! I'm your AI assistant. How can I help you today?";
+
+                const initialMessage = messagesContainer.querySelector('.ai-message');
+                if (initialMessage) {
+                    initialMessage.querySelector('p').textContent = initialGreeting;
+                } else {
+                    this.addMessage(initialGreeting);
+                }
+            }
+        };
+
+        // Language Detection and Processing
+        const LanguageProcessor = {
+            // Khmer Unicode range: \u1780-\u17FF
+            KHMER_PATTERN: /[\u1780-\u17FF]/,
+
+            isKhmer(text) {
+                return this.KHMER_PATTERN.test(text);
+            },
+
+            detectIntent(message) {
+                const lowerMessage = message.toLowerCase();
+
+                // Enhanced intent detection with more patterns
+                const intentPatterns = {
+                    greeting: [
+                        { en: ['hello', 'hi', 'hey', 'greetings'], km: ['សួស្តី', 'ជម្រាបសួរ', 'ជំរាបសួរ'] }
+                    ],
+                    about: [
+                        {
+                            en: ['who are you', 'what are you', 'tell me about you', 'what can you do'],
+                            km: ['តើអ្នកជានរណា', 'តើអ្នកជាអ្វី', 'ប្រាប់ខ្ញុំអំពីអ្នក', 'តើអ្នកអាចធ្វើអ្វីបាន']
+                        }
+                    ],
+                    weather: [
+                        {
+                            en: ['weather', 'forecast', 'temperature', 'rain', 'sunny'],
+                            km: ['អាកាសធាតុ', 'ការព្យាករណ៍', 'សីតុណ្ហភាព', 'ភ្លៀង', 'ក្តៅ']
+                        }
+                    ],
+                    time: [
+                        {
+                            en: ['time', 'date', 'day', 'hour', 'clock'],
+                            km: ['ពេលវេលា', 'កាលបរិច្ឆេទ', 'ថ្ងៃ', 'ម៉ោង', 'នាឡិកា']
+                        }
+                    ],
+                    thanks: [
+                        {
+                            en: ['thank', 'thanks', 'appreciate', 'grateful'],
+                            km: ['អរគុណ', 'សូមអរគុណ', 'អរគុណច្រើន']
+                        }
+                    ],
+                    help: [
+                        {
+                            en: ['help', 'assist', 'support', 'guide', 'how do i'],
+                            km: ['ជួយ', 'ជំនួយ', 'គាំទ្រ', 'ណែនាំ', 'តើខ្ញុំត្រូវធ្វើដូចម្តេច']
+                        }
+                    ],
+                    farewell: [
+                        {
+                            en: ['bye', 'goodbye', 'see you', 'farewell'],
+                            km: ['លាហើយ', 'ជំរាបលា', 'ជួបគ្នាពេលក្រោយ']
+                        }
+                    ]
+                };
+
+                // Check each intent pattern
+                for (const [intent, patternGroups] of Object.entries(intentPatterns)) {
+                    for (const patternGroup of patternGroups) {
+                        // Check both English and Khmer patterns
+                        for (const [lang, patterns] of Object.entries(patternGroup)) {
+                            for (const pattern of patterns) {
+                                if (lowerMessage.includes(pattern)) {
+                                    return { intent, lang };
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Sentiment analysis - basic implementation
+                const positiveWords = {
+                    en: ['good', 'great', 'excellent', 'amazing', 'love', 'happy', 'wonderful'],
+                    km: ['ល្អ', 'អស្ចារ្យ', 'ស្រឡាញ់', 'រីករាយ', 'សប្បាយ']
+                };
+
+                const negativeWords = {
+                    en: ['bad', 'terrible', 'awful', 'sad', 'hate', 'unhappy', 'disappointed'],
+                    km: ['អាក្រក់', 'មិនល្អ', 'កើតទុក្ខ', 'ខកចិត្ត', 'ស្អប់']
+                };
+
+                let sentiment = 'neutral';
+                const isKhmer = this.isKhmer(message);
+                const lang = isKhmer ? 'km' : 'en';
+
+                for (const word of positiveWords[lang]) {
+                    if (lowerMessage.includes(word)) {
+                        sentiment = 'positive';
+                        break;
+                    }
+                }
+
+                if (sentiment === 'neutral') {
+                    for (const word of negativeWords[lang]) {
+                        if (lowerMessage.includes(word)) {
+                            sentiment = 'negative';
+                            break;
+                        }
+                    }
+                }
+
+                return { intent: 'default', lang, sentiment };
+            }
+        };
+
+        // Response Generation with NLG capabilities
+        const ResponseGenerator = {
+            responses: {
+                greeting: {
+                    en: [
+                        "Hello! How can I assist you today?",
+                        "Hi there! What can I help you with?",
+                        "Greetings! How may I be of service?"
+                    ],
+                    km: [
+                        "សួស្តី! តើខ្ញុំអាចជួយអ្វីដល់អ្នកបានថ្ងៃនេះ?",
+                        "ជម្រាបសួរ! តើខ្ញុំអាចជួយអ្វីដល់អ្នកបាន?",
+                        "សួស្តី! តើខ្ញុំអាចបម្រើអ្នកយ៉ាងដូចម្តេច?"
+                    ]
+                },
+                about: {
+                    en: [
+                        "I am an AI assistant designed to help answer your questions and provide information.",
+                        "I'm a virtual assistant created to help with various tasks and answer questions.",
+                        "I'm an AI chat assistant, here to provide information and assistance."
+                    ],
+                    km: [
+                        "ខ្ញុំជាជំនួយការ AI ដែលត្រូវបានបង្កើតឡើងដើម្បីជួយឆ្លើយសំណួររបស់អ្នក និងផ្តល់ព័ត៌មាន។",
+                        "ខ្ញុំជាជំនួយការនិម្មិតដែលបង្កើតឡើងដើម្បីជួយក្នុងកិច្ចការផ្សេងៗ និងឆ្លើយសំណួរ។",
+                        "ខ្ញុំជាជំនួយការជជែកកំសាន្ត AI នៅទីនេះដើម្បីផ្តល់ព័ត៌មាននិងជំនួយ។"
+                    ]
+                },
+                weather: {
+                    en: [
+                        "I don't have access to real-time weather data, but I can suggest checking a weather service or app for the current forecast.",
+                        "For the most up-to-date weather information, you might want to check a weather website or app."
+                    ],
+                    km: [
+                        "ខ្ញុំមិនមានការចូលប្រើទិន្នន័យអាកាសធាតុជាក់ស្តែងទេ ប៉ុន្តែខ្ញុំអាចណែនាំឱ្យពិនិត្យមើលសេវាកម្មអាកាសធាតុ ឬកម្មវិធីសម្រាប់ការព្យាករណ៍បច្ចុប្បន្ន។",
+                        "សម្រាប់ព័ត៌មានអាកាសធាតុចុងក្រោយបំផុត អ្នកប្រហែលជាចង់ពិនិត្យមើលគេហទំព័រអាកាសធាតុ ឬកម្មវិធី។"
+                    ]
+                },
+                time: {
+                    en: [
+                        "I don't have access to real-time data, but you can check the time on your device.",
+                        "The current time should be displayed on your device."
+                    ],
+                    km: [
+                        "ខ្ញុំមិនមានការចូលប្រើទិន្នន័យពេលវេលាជាក់ស្តែងទេ ប៉ុន្តែអ្នកអាចពិនិត្យមើលពេលវេលានៅលើឧបករណ៍របស់អ្នក។",
+                        "ពេលវេលាបច្ចុប្បន្នគួរតែបង្ហាញនៅលើឧបករណ៍របស់អ្នក។"
+                    ]
+                },
+                thanks: {
+                    en: [
+                        "You're welcome! Feel free to ask if you have more questions.",
+                        "Happy to help! Let me know if you need anything else.",
+                        "My pleasure! Is there anything else you'd like to know?"
+                    ],
+                    km: [
+                        "សូមស្វាគមន៍! សូមសួរដោយសេរីប្រសិនបើអ្នកមានសំណួរបន្ថែម។",
+                        "រីករាយដែលបានជួយ! សូមប្រាប់ខ្ញុំប្រសិនបើអ្នកត្រូវការអ្វីផ្សេងទៀត។",
+                        "ក្តីរីករាយរបស់ខ្ញុំ! តើមានអ្វីផ្សេងទៀតដែលអ្នកចង់ដឹងទេ?"
+                    ]
+                },
+                help: {
+                    en: [
+                        "I can help answer questions, provide information, or just chat. What do you need help with?",
+                        "I'm here to assist you. Could you please specify what kind of help you need?"
+                    ],
+                    km: [
+                        "ខ្ញុំអាចជួយឆ្លើយសំណួរ ផ្តល់ព័ត៌មាន ឬគ្រាន់តែជជែក។ តើអ្នកត្រូវការជំនួយអ្វី?",
+                        "ខ្ញុំនៅទីនេះដើម្បីជួយអ្នក។ តើអ្នកអាចបញ្ជាក់បានទេថាអ្នកត្រូវការជំនួយប្រភេទណា?"
+                    ]
+                },
+                farewell: {
+                    en: [
+                        "Goodbye! Feel free to come back if you have more questions.",
+                        "Farewell! I'm here whenever you need assistance.",
+                        "Take care! Come back anytime you need help."
+                    ],
+                    km: [
+                        "លាហើយ! សូមត្រឡប់មកវិញប្រសិនបើអ្នកមានសំណួរបន្ថែម។",
+                        "ជំរាបលា! ខ្ញុំនៅទីនេះពេលណាដែលអ្នកត្រូវការជំនួយ។",
+                        "សូមថែរក្សាខ្លួន! សូមត្រឡប់មកវិញពេលណាដែលអ្នកត្រូវការជំនួយ។"
+                    ]
+                },
+                default: {
+                    en: [
+                        "That's an interesting topic. Could you tell me more about what specifically you'd like to know?",
+                        "I'd like to help with that. Could you provide more details about your question?",
+                        "I understand you're asking about that. Could you elaborate a bit more so I can give you a better response?"
+                    ],
+                    km: [
+                        "នោះជាប្រធានបទគួរឱ្យចាប់អារម្មណ៍។ តើអ្នកអាចប្រាប់ខ្ញុំបន្ថែមអំពីអ្វីជាក់លាក់ដែលអ្នកចង់ដឹងបានទេ?",
+                        "ខ្ញុំចង់ជួយរឿងនោះ។ តើអ្នកអាចផ្តល់ព័ត៌មានលម្អិតបន្ថែមអំពីសំណួររបស់អ្នកបានទេ?",
+                        "ខ្ញុំយល់ថាអ្នកកំពុងសួរអំពីរឿងនោះ។ តើអ្នកអាចពន្យល់បន្ថែមបន្តិចដើម្បីឱ្យខ្ញុំអាចផ្តល់ការឆ្លើយតបល្អប្រសើរជាងមុនបានទេ?"
+                    ]
+                },
+                positiveDefault: {
+                    en: [
+                        "I'm glad to hear that! Is there anything specific about it you'd like to discuss?",
+                        "That sounds great! Would you like to tell me more about it?"
+                    ],
+                    km: [
+                        "ខ្ញុំរីករាយដែលឮដូច្នោះ! តើមានអ្វីជាក់លាក់អំពីវាដែលអ្នកចង់ពិភាក្សាទេ?",
+                        "ឮហាក់ដូចជាអស្ចារ្យណាស់! តើអ្នកចង់ប្រាប់ខ្ញុំបន្ថែមអំពីវាទេ?"
+                    ]
+                },
+                negativeDefault: {
+                    en: [
+                        "I'm sorry to hear that. Is there something I can help with?",
+                        "That sounds challenging. Would you like to talk more about it?"
+                    ],
+                    km: [
+                        "ខ្ញុំសោកស្តាយដែលឮដូច្នោះ។ តើមានអ្វីដែលខ្ញុំអាចជួយបានទេ?",
+                        "ឮហាក់ដូចជាមានបញ្ហាប្រឈម។ តើអ្នកចង់និយាយបន្ថែមអំពីវាទេ?"
+                    ]
+                }
+            },
+
+            generate(userMessage) {
+                // Context tracking and enhanced response generation
+                const analysis = LanguageProcessor.detectIntent(userMessage);
+                const lang = analysis.lang || (LanguageProcessor.isKhmer(userMessage) ? 'km' : 'en');
+
+                let responseType = analysis.intent;
+
+                // If default intent but with sentiment, use sentiment-specific responses
+                if (responseType === 'default' && analysis.sentiment === 'positive') {
+                    responseType = 'positiveDefault';
+                } else if (responseType === 'default' && analysis.sentiment === 'negative') {
+                    responseType = 'negativeDefault';
+                }
+
+                // Use contextually appropriate responses
+                const responses = this.responses[responseType][lang];
+                return responses[Math.floor(Math.random() * responses.length)];
+            }
+        };
+
+        // Chat Manager - coordinates all interactions
+        const ChatManager = {
+            init() {
+                ThemeManager.init();
+                // Initialize the ChatUI
+                ChatUI.init();
+
+                messageForm.addEventListener('submit', this.handleSendMessage.bind(this));
+                messageInput.addEventListener('input', () => ChatUI.updateSendButtonState());
+
+                // Focus input on page load
+                messageInput.focus();
+
+                // Set initial message
+                ChatUI.setInitialGreeting();
+                ChatUI.updateSendButtonState();
+            },
+
+            handleSendMessage(e) {
+                e.preventDefault();
+
+                const message = messageInput.value.trim();
+                if (!message) return;
+
+                // Add user message
+                ChatUI.addMessage(message, true);
+                messageInput.value = '';
+                ChatUI.updateSendButtonState();
+
+                // Simulate AI thinking and responding
+                this.simulateResponse(message);
+            },
+
+            simulateResponse(userMessage) {
+                // Show typing indicator
+                const typingIndicator = ChatUI.createTypingIndicator();
+
+                // Calculate dynamic delay based on message complexity
+                const baseDelay = 1000;
+                const complexityFactor = Math.min(userMessage.length / 20, 3); // Cap at 3x
+                const randomVariation = Math.random() * 500;
+                const typingDelay = baseDelay + (complexityFactor * 500) + randomVariation;
+
+                // Generate and display response after appropriate delay
+                setTimeout(() => {
+                    typingIndicator.remove();
+                    const response = ResponseGenerator.generate(userMessage);
+                    ChatUI.addMessage(response);
+                }, typingDelay);
+            }
+        };
+
+        // Initialize the application when the DOM is fully loaded
+        document.addEventListener('DOMContentLoaded', () => ChatManager.init());
+    </script>
+</body>
+
+</html>
