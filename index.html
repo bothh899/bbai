@@ -55,28 +55,28 @@
         .dark-theme {
             --background: #0f172a;
             --foreground: #f8fafc;
-            --card: #1e293b;
-            --card-foreground: #f8fafc;
-            --primary: #16239b;
-            ß --primary-hover: #a5b4fc;
+            --card: #343b1e;
+            --card-foreground: #ffffff;
+            --primary: #5b9016;
+            --primary-hover: #a5b4fc;
             --primary-foreground: #ffffff;
-            --secondary: #1e293b;
-            --secondary-foreground: #f8fafc;
+            --secondary: #13166b;
+            --secondary-foreground: #ffffff;
             --muted: #1e293b;
             --muted-foreground: #94a3b8;
             --accent: #1e293b;
             --accent-foreground: #f8fafc;
             --destructive: #dc2626;
-            ß --destructive-foreground: #ffffff;
+            --destructive-foreground: #ffffff;
             --border: #334155;
             --input: #1e293b;
-            --ring: #818cf8;
+            --ring: #81f89d;
 
             /* Dark mode shadows */
             --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
             --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
             --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
-            --shadow-focus: 0 0 0 4px rgba(129, 140, 248, 0.3);
+            --shadow-focus: 0 0 0 4px rgba(255, 255, 255, 0.3);
         }
 
         /* CSS Reset with modern approach */
@@ -90,14 +90,15 @@
         }
 
         html {
-            font-size: 16px;
+            font-size: 19px;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
             scroll-behavior: smooth;
         }
 
         body {
-            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            font-family: 'Noto Sans Khmer', 'Battambang', 'Inter', system-ui, -apple-system,
+                BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
             background-color: var(--background);
             color: var(--foreground);
             line-height: 1.6;
@@ -774,32 +775,46 @@
         const messageInput = document.getElementById('messageInput');
         const sendButton = document.getElementById('sendButton');
 
+        // Check if required DOM elements exist
+        if (!themeToggle || !messagesContainer || !messageForm || !messageInput || !sendButton) {
+            console.error('Required DOM elements are missing');
+            throw new Error('Required DOM elements are missing');
+        }
+
         // Theme Management with modern best practices
         const ThemeManager = {
             STORAGE_KEY: 'theme',
             THEME_DARK: 'dark-theme',
 
             init() {
-                const savedTheme = localStorage.getItem(this.STORAGE_KEY);
-                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                try {
+                    const savedTheme = localStorage.getItem(this.STORAGE_KEY);
+                    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 
-                if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
-                    document.body.classList.add(this.THEME_DARK);
-                }
-
-                // Listen for system theme changes
-                window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
-                    if (!localStorage.getItem(this.STORAGE_KEY)) {
-                        document.body.classList.toggle(this.THEME_DARK, e.matches);
+                    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+                        document.body.classList.add(this.THEME_DARK);
                     }
-                });
 
-                themeToggle.addEventListener('click', this.toggle.bind(this));
+                    // Listen for system theme changes
+                    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+                        if (!localStorage.getItem(this.STORAGE_KEY)) {
+                            document.body.classList.toggle(this.THEME_DARK, e.matches);
+                        }
+                    });
+
+                    themeToggle.addEventListener('click', () => this.toggle());
+                } catch (e) {
+                    console.error('Theme initialization failed:', e);
+                }
             },
 
             toggle() {
-                const isDark = document.body.classList.toggle(this.THEME_DARK);
-                localStorage.setItem(this.STORAGE_KEY, isDark ? 'dark' : 'light');
+                try {
+                    const isDark = document.body.classList.toggle(this.THEME_DARK);
+                    localStorage.setItem(this.STORAGE_KEY, isDark ? 'dark' : 'light');
+                } catch (e) {
+                    console.error('Failed to toggle theme:', e);
+                }
             }
         };
 
@@ -811,13 +826,22 @@
             userScrolledUp: false,
             // Scroll to bottom button element
             scrollButton: null,
+            // For scroll debouncing
+            scrollDebounce: null,
 
             init() {
-                // Create scroll to bottom button
-                this.createScrollButton();
+                try {
+                    // Create scroll to bottom button
+                    this.createScrollButton();
 
-                // Add scroll event listener to detect manual scrolling
-                messagesContainer.addEventListener('scroll', this.handleScroll.bind(this));
+                    // Add scroll event listener to detect manual scrolling
+                    messagesContainer.addEventListener('scroll', () => this.handleScroll());
+
+                    // Ensure messages container has relative positioning for absolute child
+                    messagesContainer.style.position = 'relative';
+                } catch (e) {
+                    console.error('ChatUI initialization failed:', e);
+                }
             },
 
             createScrollButton() {
@@ -828,7 +852,7 @@
                 this.scrollButton.style.display = 'none';
                 this.scrollButton.addEventListener('click', () => this.scrollToBottom(true));
 
-                // Position the button at the bottom right of messages container
+                // Style the button
                 this.scrollButton.style.position = 'absolute';
                 this.scrollButton.style.right = '20px';
                 this.scrollButton.style.bottom = '20px';
@@ -843,29 +867,34 @@
                 this.scrollButton.style.cursor = 'pointer';
                 this.scrollButton.style.zIndex = '1000';
 
-                // Add button to the page
-                document.body.appendChild(this.scrollButton);
+                // Add button to the messages container
+                messagesContainer.appendChild(this.scrollButton);
             },
 
             handleScroll() {
-                const { scrollHeight, scrollTop, clientHeight } = messagesContainer;
-                const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
+                if (this.scrollDebounce) clearTimeout(this.scrollDebounce);
+                this.scrollDebounce = setTimeout(() => {
+                    const { scrollHeight, scrollTop, clientHeight } = messagesContainer;
+                    const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
 
-                // Update scroll state
-                this.userScrolledUp = distanceFromBottom > this.SCROLL_THRESHOLD;
+                    // Update scroll state
+                    this.userScrolledUp = distanceFromBottom > this.SCROLL_THRESHOLD;
 
-                // Toggle scroll button visibility
-                this.scrollButton.style.display = this.userScrolledUp ? 'block' : 'none';
+                    // Toggle scroll button visibility
+                    if (this.scrollButton) {
+                        this.scrollButton.style.display = this.userScrolledUp ? 'block' : 'none';
+                    }
+                }, 100);
             },
 
             createTypingIndicator() {
                 const typingIndicator = document.createElement('div');
                 typingIndicator.className = 'typing-indicator';
                 typingIndicator.innerHTML = `
-      <div class="typing-dot"></div>
-      <div class="typing-dot"></div>
-      <div class="typing-dot"></div>
-    `;
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+        `;
                 this.appendToChat(typingIndicator);
                 return typingIndicator;
             },
@@ -887,60 +916,68 @@
             },
 
             appendToChat(element) {
-                // Add the new element to the messages container
-                messagesContainer.appendChild(element);
+                try {
+                    // Add the new element to the messages container
+                    messagesContainer.appendChild(element);
 
-                // Check if we should auto-scroll before adding the new element
-                const shouldAutoScroll = !this.userScrolledUp;
+                    // Check if we should auto-scroll
+                    const shouldAutoScroll = !this.userScrolledUp;
 
-                // Only auto-scroll if the user hasn't scrolled up
-                if (shouldAutoScroll) {
-                    this.scrollToBottom(true);
-                }
+                    // Only auto-scroll if the user hasn't scrolled up
+                    if (shouldAutoScroll) {
+                        this.scrollToBottom(true);
+                    }
 
-                // If it's a user message or AI response (not typing indicator), 
-                // ensure we're at the bottom
-                if (element.classList &&
-                    (element.classList.contains('user-message') ||
-                        element.classList.contains('ai-message'))) {
-                    // Force scroll to bottom with a slight delay to ensure rendering completes
-                    setTimeout(() => {
-                        if (!this.userScrolledUp) {
-                            this.scrollToBottom(true);
-                        }
-                    }, 50);
+                    // If it's a user message or AI response, ensure we're at the bottom
+                    if (element.classList &&
+                        (element.classList.contains('user-message') ||
+                            element.classList.contains('ai-message'))) {
+                        setTimeout(() => {
+                            if (!this.userScrolledUp) {
+                                this.scrollToBottom(true);
+                            }
+                        }, 50);
+                    }
+                } catch (e) {
+                    console.error('Failed to append message:', e);
                 }
             },
 
             addMessage(content, isUser = false) {
-                const messageElement = this.createMessage(content, isUser);
-                this.appendToChat(messageElement);
+                try {
+                    const messageElement = this.createMessage(content, isUser);
+                    this.appendToChat(messageElement);
 
-                // Force an additional scroll to bottom after a short delay
-                // This ensures scrolling works even if content changes size after rendering
-                setTimeout(() => {
-                    if (!this.userScrolledUp) {
-                        this.scrollToBottom(true);
-                    }
-                }, 100);
+                    setTimeout(() => {
+                        if (!this.userScrolledUp) {
+                            this.scrollToBottom(true);
+                        }
+                    }, 100);
+                } catch (e) {
+                    console.error('Failed to add message:', e);
+                }
             },
 
             scrollToBottom(smooth = false) {
-                if (smooth) {
-                    messagesContainer.scrollTo({
-                        top: messagesContainer.scrollHeight,
-                        behavior: 'smooth'
-                    });
-                } else {
-                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-                }
+                try {
+                    if (smooth) {
+                        messagesContainer.scrollTo({
+                            top: messagesContainer.scrollHeight,
+                            behavior: 'smooth'
+                        });
+                    } else {
+                        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                    }
 
-                // Reset user scrolled state
-                this.userScrolledUp = false;
+                    // Reset user scrolled state
+                    this.userScrolledUp = false;
 
-                // Hide scroll button
-                if (this.scrollButton) {
-                    this.scrollButton.style.display = 'none';
+                    // Hide scroll button
+                    if (this.scrollButton) {
+                        this.scrollButton.style.display = 'none';
+                    }
+                } catch (e) {
+                    console.error('Failed to scroll to bottom:', e);
                 }
             },
 
@@ -949,105 +986,103 @@
             },
 
             setInitialGreeting() {
-                const isKhmerLanguage = navigator.language && navigator.language.startsWith('km');
-                const initialGreeting = isKhmerLanguage
-                    ? "សួស្តី! ខ្ញុំជាជំនួយការ AI របស់អ្នក។ តើខ្ញុំអាចជួយអ្នកបានយ៉ាងដូចម្តេចថ្ងៃនេះ?"
-                    : "Hello! I'm your AI assistant. How can I help you today?";
+                const initialGreeting = "សួស្តី! ខ្ញុំជាជំនួយការ AI របស់អ្នក។ តើខ្ញុំអាចជួយអ្នកបានយ៉ាងដូចម្តេចថ្ងៃនេះ?";
 
-                const initialMessage = messagesContainer.querySelector('.ai-message');
-                if (initialMessage) {
-                    initialMessage.querySelector('p').textContent = initialGreeting;
-                } else {
-                    this.addMessage(initialGreeting);
+                try {
+                    const initialMessage = messagesContainer.querySelector('.ai-message');
+                    if (initialMessage) {
+                        initialMessage.querySelector('p').textContent = initialGreeting;
+                    } else {
+                        this.addMessage(initialGreeting);
+                    }
+                } catch (e) {
+                    console.error('Failed to set initial greeting:', e);
                 }
             }
         };
 
-        // Language Detection and Processing
+        // Enhanced Language Detection and Processing
         const LanguageProcessor = {
             // Khmer Unicode range: \u1780-\u17FF
             KHMER_PATTERN: /[\u1780-\u17FF]/,
+            // English alphabet pattern
+            ENGLISH_PATTERN: /[a-zA-Z]/,
 
             isKhmer(text) {
                 return this.KHMER_PATTERN.test(text);
             },
 
+            isEnglish(text) {
+                return this.ENGLISH_PATTERN.test(text) && !this.isKhmer(text);
+            },
+
+            // Tokenize Khmer text into words - simplified implementation
+            tokenize(text) {
+                // Split by common Khmer word boundaries (space, zero-width space)
+                return text.split(/[\s\u200B]+/).filter(word => word.length > 0);
+            },
+
+            // Calculate similarity between two strings (for fuzzy matching)
+            calculateSimilarity(str1, str2) {
+                const s1 = str1.toLowerCase();
+                const s2 = str2.toLowerCase();
+
+                // Simple word overlap calculation
+                const words1 = this.tokenize(s1);
+                const words2 = this.tokenize(s2);
+
+                // Count matching words
+                let matches = 0;
+                for (const word of words1) {
+                    if (words2.includes(word) && word.length > 1) { // Ignore single character matches
+                        matches++;
+                    }
+                }
+
+                // Calculate similarity score (0-1)
+                const totalWords = Math.max(words1.length, words2.length);
+                return totalWords > 0 ? matches / totalWords : 0;
+            },
+
             detectIntent(message) {
+                // Check if the message is in English
+                if (this.isEnglish(message)) {
+                    return { intent: 'english_detected' };
+                }
+
                 const lowerMessage = message.toLowerCase();
 
-                // Enhanced intent detection with more patterns
+                // Enhanced intent detection with Khmer patterns
                 const intentPatterns = {
-                    greeting: [
-                        { en: ['hello', 'hi', 'hey', 'greetings'], km: ['សួស្តី', 'ជម្រាបសួរ', 'ជំរាបសួរ'] }
-                    ],
-                    about: [
-                        {
-                            en: ['who are you', 'what are you', 'tell me about you', 'what can you do'],
-                            km: ['តើអ្នកជានរណា', 'តើអ្នកជាអ្វី', 'ប្រាប់ខ្ញុំអំពីអ្នក', 'តើអ្នកអាចធ្វើអ្វីបាន']
-                        }
-                    ],
-                    weather: [
-                        {
-                            en: ['weather', 'forecast', 'temperature', 'rain', 'sunny'],
-                            km: ['អាកាសធាតុ', 'ការព្យាករណ៍', 'សីតុណ្ហភាព', 'ភ្លៀង', 'ក្តៅ']
-                        }
-                    ],
-                    time: [
-                        {
-                            en: ['time', 'date', 'day', 'hour', 'clock'],
-                            km: ['ពេលវេលា', 'កាលបរិច្ឆេទ', 'ថ្ងៃ', 'ម៉ោង', 'នាឡិកា']
-                        }
-                    ],
-                    thanks: [
-                        {
-                            en: ['thank', 'thanks', 'appreciate', 'grateful'],
-                            km: ['អរគុណ', 'សូមអរគុណ', 'អរគុណច្រើន']
-                        }
-                    ],
-                    help: [
-                        {
-                            en: ['help', 'assist', 'support', 'guide', 'how do i'],
-                            km: ['ជួយ', 'ជំនួយ', 'គាំទ្រ', 'ណែនាំ', 'តើខ្ញុំត្រូវធ្វើដូចម្តេច']
-                        }
-                    ],
-                    farewell: [
-                        {
-                            en: ['bye', 'goodbye', 'see you', 'farewell'],
-                            km: ['លាហើយ', 'ជំរាបលា', 'ជួបគ្នាពេលក្រោយ']
-                        }
-                    ]
+                    greeting: ['សួស្ដី', 'សួស្តី', 'ជម្រាបសួរ', 'ជំរាបសួរ'],
+                    about: ['តើអ្នកជានរណា', 'តើអ្នកជាអ្វី', 'ប្រាប់ខ្ញុំអំពីអ្នក', 'តើអ្នកអាចធ្វើអ្វីបាន'],
+                    weather: ['អាកាសធាតុ', 'ការព្យាករណ៍', 'សីតុណ្ហភាព', 'ភ្លៀង', 'ក្តៅ'],
+                    time: ['ពេលវេលា', 'កាលបរិច្ឆេទ', 'ថ្ងៃ', 'ម៉ោង', 'នាឡិកា'],
+                    thanks: ['អរគុណ', 'សូមអរគុណ', 'អរគុណច្រើន'],
+                    help: ['ជួយ', 'ជំនួយ', 'គាំទ្រ', 'ណែនាំ', 'តើខ្ញុំត្រូវធ្វើដូចម្តេច'],
+                    farewell: ['លាហើយ', 'ជំរាបលា', 'ជួបគ្នាពេលក្រោយ']
                 };
 
                 // Check each intent pattern
-                for (const [intent, patternGroups] of Object.entries(intentPatterns)) {
-                    for (const patternGroup of patternGroups) {
-                        // Check both English and Khmer patterns
-                        for (const [lang, patterns] of Object.entries(patternGroup)) {
-                            for (const pattern of patterns) {
-                                if (lowerMessage.includes(pattern)) {
-                                    return { intent, lang };
-                                }
-                            }
+                for (const [intent, patterns] of Object.entries(intentPatterns)) {
+                    for (const pattern of patterns) {
+                        if (lowerMessage.includes(pattern)) {
+                            return { intent };
                         }
                     }
                 }
 
-                // Sentiment analysis - basic implementation
-                const positiveWords = {
-                    en: ['good', 'great', 'excellent', 'amazing', 'love', 'happy', 'wonderful'],
-                    km: ['ល្អ', 'អស្ចារ្យ', 'ស្រឡាញ់', 'រីករាយ', 'សប្បាយ']
-                };
+                // Extract question words and entities for better FAQ matching
+                const questionWords = ['តើ', 'អ្វី', 'ម្តេច', 'នរណា', 'ពេលណា', 'កន្លែងណា', 'ហេតុអ្វី'];
+                const hasQuestionWord = questionWords.some(word => lowerMessage.includes(word));
 
-                const negativeWords = {
-                    en: ['bad', 'terrible', 'awful', 'sad', 'hate', 'unhappy', 'disappointed'],
-                    km: ['អាក្រក់', 'មិនល្អ', 'កើតទុក្ខ', 'ខកចិត្ត', 'ស្អប់']
-                };
+                // Sentiment analysis - basic implementation
+                const positiveWords = ['ល្អ', 'អស្ចារ្យ', 'ស្រឡាញ់', 'រីករាយ', 'សប្បាយ'];
+                const negativeWords = ['អាក្រក់', 'មិនល្អ', 'កើតទុក្ខ', 'ខកចិត្ត', 'ស្អប់'];
 
                 let sentiment = 'neutral';
-                const isKhmer = this.isKhmer(message);
-                const lang = isKhmer ? 'km' : 'en';
 
-                for (const word of positiveWords[lang]) {
+                for (const word of positiveWords) {
                     if (lowerMessage.includes(word)) {
                         sentiment = 'positive';
                         break;
@@ -1055,7 +1090,7 @@
                 }
 
                 if (sentiment === 'neutral') {
-                    for (const word of negativeWords[lang]) {
+                    for (const word of negativeWords) {
                         if (lowerMessage.includes(word)) {
                             sentiment = 'negative';
                             break;
@@ -1063,163 +1098,228 @@
                     }
                 }
 
-                return { intent: 'default', lang, sentiment };
+                return {
+                    intent: 'default',
+                    sentiment,
+                    isQuestion: hasQuestionWord,
+                    tokens: this.tokenize(lowerMessage)
+                };
             }
         };
 
-        // Response Generation with NLG capabilities
+        // Enhanced Response Generation with NLG capabilities
         const ResponseGenerator = {
+            // Expanded FAQs with keywords and alternate phrasings
+            faqData: [
+                {
+                    id: 'hun_manet',
+                    keywords: ['ហ៊ុន ម៉ាណែត', 'នាយករដ្ឋមន្ត្រី', 'រដ្ឋមន្ត្រី'],
+                    questions: [
+                        'តើលោក ហ៊ុន ម៉ាណែត នាយករដ្ឋមន្រ្តីរបស់កម្ពុជា ជានរណា?',
+                        'ប្រាប់ខ្ញុំអំពីលោក ហ៊ុន ម៉ាណែត',
+                        'តើនរណាជានាយករដ្ឋមន្ត្រីកម្ពុជា?'
+                    ],
+                    answer: "លោក ហ៊ុន ម៉ាណែត នាយករដ្ឋមន្ត្រីតែងតាំង ឈរនៅមុខរដ្ឋសភាជាតិ មុនពេលចូលរួមសម័យប្រជុំដំបូង សម្រាប់នីតិកាលទី ៧ នៃរដ្ឋសភា រាជធានីភ្នំពេញ ថ្ងៃទី ២១ ខែសីហា ឆ្នាំ ២០២៣។"
+                },
+                {
+                    id: 'hun_sen',
+                    keywords: ['ហ៊ុន សែន', 'អតីតនាយករដ្ឋមន្ត្រី', 'ប្រធានព្រឹទ្ធសភា'],
+                    questions: [
+                        'តើលោក ហ៊ុន សែន ជានរណា?',
+                        'ប្រាប់ខ្ញុំអំពីលោក ហ៊ុន សែន',
+                        'តើអ្នកណាជាអតីតនាយករដ្ឋមន្ត្រីកម្ពុជា?'
+                    ],
+                    answer: "លោក ហ៊ុន សែន គឺជាអតីតនាយករដ្ឋមន្រ្តីនៃកម្ពុជា និងជាអ្នកដឹកនាំគណបក្សប្រជាជនកម្ពុជា។ បច្ចុប្បន្ន លោកមានតួនាទីជាប្រធានព្រឹទ្ធសភា។ លោកបានកាន់តំណែងជានាយករដ្ឋមន្ត្រីអស់រយៈពេលជាង៣៨ឆ្នាំ (១៩៨៥-២០២៣) មុនផ្ទេរតំណែងឱ្យលោក ហ៊ុន ម៉ាណែត ដែលជាកូនប្រុសរបស់លោក។"
+                },
+                {
+                    id: 'phnom_penh_weather',
+                    keywords: ['អាកាសធាតុ', 'ភ្នំពេញ', 'ធាតុអាកាស', 'សីតុណ្ហភាព'],
+                    questions: [
+                        'តើអាកាសធាតុថ្ងៃនេះនៅភ្នំពេញយ៉ាងដូចម្តេច?',
+                        'តើថ្ងៃនេះក្តៅឬទេ?',
+                        'តើនៅភ្នំពេញមានភ្លៀងធ្លាក់ទេ?'
+                    ],
+                    answer: "សូមពិនិត្យកម្មវិធីអាកាសធាតុឬគេហទំព័រផ្លូវការដើម្បីទទួលបានព័ត៌មានអាកាសធាតុថ្មីៗ។ ខ្ញុំមិនអាចផ្តល់ព័ត៌មានអាកាសធាតុបច្ចុប្បន្នភាពបានទេ។"
+                },
+                {
+                    id: 'asean',
+                    keywords: ['អាស៊ាន', 'សមាគម', 'ប្រទេសអាស៊ីអាគ្នេយ៍'],
+                    questions: [
+                        'តើអ្វីទៅជាសមាគមអាស៊ាន?',
+                        'តើអាស៊ានមានសមាជិកប៉ុន្មានប្រទេស?',
+                        'ប្រាប់ខ្ញុំអំពីអាស៊ាន'
+                    ],
+                    answer: "សមាគមអាស៊ាន (ASEAN) គឺជាសមាគមប្រជាជាតិអាស៊ីអាគ្នេយ៍ ដែលបង្កើតឡើងនៅថ្ងៃទី៨ ខែសីហា ឆ្នាំ១៩៦៧។ អាស៊ានមានសមាជិក១០ប្រទេស រួមមាន៖ ប្រ៊ុយណេ កម្ពុជា ឥណ្ឌូនេស៊ី ឡាវ ម៉ាឡេស៊ី មីយ៉ាន់ម៉ា ហ្វីលីពីន សិង្ហបុរី ថៃ និងវៀតណាម។ គោលបំណងរបស់អាស៊ានគឺដើម្បីលើកកម្ពស់កំណើនសេដ្ឋកិច្ច វឌ្ឍនភាពសង្គម និងការអភិវឌ្ឍវប្បធម៌ក្នុងតំបន់ ព្រមទាំងលើកកម្ពស់សន្តិភាពនិងស្ថិរភាពក្នុងតំបន់។"
+                },
+                {
+                    id: 'un',
+                    keywords: ['អង្គការសហប្រជាជាតិ', 'UN', 'សហប្រជាជាតិ'],
+                    questions: [
+                        'តើអ្វីទៅជាអង្គការសហប្រជាជាតិ?',
+                        'ពន្យល់ខ្ញុំអំពីអង្គការ UN',
+                        'តើអង្គការសហប្រជាជាតិធ្វើអ្វីខ្លះ?'
+                    ],
+                    answer: "អង្គការសហប្រជាជាតិ (UN) គឺជាអង្គការអន្តរជាតិដែលបង្កើតឡើងក្នុងឆ្នាំ១៩៤៥ ក្រោយសង្គ្រាមលោកលើកទី២។ បច្ចុប្បន្ន មានប្រទេសសមាជិកចំនួន១៩៣។ គោលបំណងចម្បងរបស់អង្គការសហប្រជាជាតិគឺ៖\n• រក្សាសន្តិភាពនិងសន្តិសុខអន្តរជាតិ\n• អភិវឌ្ឍទំនាក់ទំនងមិត្តភាពរវាងប្រជាជាតិទាំងអស់\n• សម្របសម្រួលកិច្ចសហប្រតិបត្តិការអន្តរជាតិដើម្បីដោះស្រាយបញ្ហាផ្នែកសេដ្ឋកិច្ច សង្គម វប្បធម៌ និងមនុស្សធម៌\n• លើកស្ទួយការគោរពសិទ្ធិមនុស្សនិងសេរីភាពមូលដ្ឋាន"
+                },
+                {
+                    id: 'coup_sihanouk',
+                    keywords: ['រដ្ឋប្រហារ', 'នរោត្តម សីហនុ', 'សីហនុ', 'ឆ្នាំ១៩៧០', 'សាធារណរដ្ឋខ្មែរ'],
+                    questions: [
+                        'តើរដ្ឋប្រហារទម្លាក់សម្តេចនរោត្តម សីហនុ កើតឡើងនៅឆ្នាំណា?',
+                        'តើរដ្ឋប្រហារឆ្នាំ១៩៧០បាននាំមកអ្វីខ្លះ?',
+                        'ប្រាប់ខ្ញុំអំពីរដ្ឋប្រហារទម្លាក់សីហនុ'
+                    ],
+                    answer: "រដ្ឋប្រហារទម្លាក់សម្តេចនរោត្តមសីហនុ កើតឡើងនៅថ្ងៃទី១៨ ខែមីនា ឆ្នាំ១៩៧០ ដឹកនាំដោយលោក លន់ នល់។ រដ្ឋប្រហារនេះបាននាំមកនូវ៖\n\
+• ការប្ដូររបបរាជានិយមមកជាសាធារណរដ្ឋខ្មែរ\n\
+• ប្រទេសបែកជាពីរផ្នែក៖ នៅទីប្រជុំជនគ្រប់គ្រងដោយសាធារណរដ្ឋខ្មែរ និងនៅទីជនបទគ្រប់គ្រងដោយបក្សកុម្មុយនីស្ត\n\
+• នៅក្រុងប៉េកាំង ព្រះនរោត្តមសីហនុបង្កើតរដ្ឋាភិបាលនិរទេសខ្លួន\n\
+• ព្រះអង្គបានអំពាវនាវឲ្យប្រជាជនចូលព្រៃម៉ាក់គី ដើម្បីប្រឆាំងរបបសាធារណរដ្ឋខ្មែរ\n\
+• កើតមានសង្គ្រាមស៊ីវិលរវាងសាធារណរដ្ឋខ្មែរនិងកងកម្លាំងខ្មែរក្រហម\n\
+• ការបាត់បង់ជីវិតមនុស្សរាប់សែននាក់\n\
+• ការរីករាលដាលនៃអំពើពុករលួយ\n\
+• ទីក្រុងភ្នំពេញត្រូវបានឡោមព័ទ្ធដោយកងកម្លាំងខ្មែរក្រហម\n\
+• ប្រជាជនរស់នៅខ្វះខាតជម្រក ខ្វះសុវត្ថិភាព និងខ្វះស្បៀងអាហារ\n\
+• ស្ថាប័នអប់រំជាច្រើនត្រូវបានបិទទ្វារ\n\
+• ដោយសារស្ថានភាពនេះ ខ្មែរក្រហមមានឱកាសកាន់តែខ្លាំងក្នុងការឡើងកាន់អំណាច ដែលនាំឱ្យមានរបបប្រល័យពូជសាសន៍បន្ទាប់មក"
+                },
+                {
+                    id: 'angkor_wat',
+                    keywords: ['អង្គរវត្ត', 'ប្រាសាទអង្គរ', 'ប្រាសាទ'],
+                    questions: [
+                        'តើអង្គរវត្តជាអ្វី?',
+                        'ប្រាប់ខ្ញុំអំពីប្រាសាទអង្គរវត្ត',
+                        'តើអង្គរវត្តស្ថិតនៅកន្លែងណា?'
+                    ],
+                    answer: "អង្គរវត្តគឺជាប្រាសាទដ៏ធំបំផុតក្នុងប្រវត្តិសាស្ត្រកម្ពុជា ដែលស្ថិតនៅខេត្តសៀមរាប។ ប្រាសាទនេះត្រូវបានសាងសង់ដោយព្រះបាទសូរ្យវរ្ម័នទី២ នាដើមសតវត្សរ៍ទី១២ ជាប្រាសាទហិណ្ឌូ ឧទ្ទិសដល់ព្រះវិស្ណុ ហើយក្រោយមកក្លាយជាប្រាសាទព្រះពុទ្ធសាសនា។ អង្គរវត្តត្រូវបានចុះក្នុងបញ្ជីបេតិកភណ្ឌពិភពលោកនៃអង្គការយូណេស្កូក្នុងឆ្នាំ១៩៩២ និងជានិមិត្តរូបជាតិរបស់ប្រទេសកម្ពុជា ដែលមានលើទង់ជាតិ និងប្រាក់រូបិយប័ណ្ណខ្មែរ។"
+                },
+                {
+                    id: 'khmer_rouge',
+                    keywords: ['ខ្មែរក្រហម', 'ប៉ុល ពត', 'របបប្រល័យពូជសាសន៍', 'សម័យប៉ុល ពត'],
+                    questions: [
+                        'តើអ្វីទៅជារបបខ្មែរក្រហម?',
+                        'តើខ្មែរក្រហមឡើងកាន់អំណាចនៅពេលណា?',
+                        'តើមានមនុស្សប៉ុន្មាននាក់ស្លាប់ក្នុងរបបខ្មែរក្រហម?'
+                    ],
+                    answer: "របបខ្មែរក្រហម (១៩៧៥-១៩៧៩) គឺជាអំឡុងពេលដ៏ក្រៅងងឹតក្នុងប្រវត្តិសាស្ត្រកម្ពុជា ដឹកនាំដោយប៉ុល ពត។ ខ្មែរក្រហមបានឡើងកាន់អំណាចពេញលេញនៅថ្ងៃទី១៧ ខែមេសា ឆ្នាំ១៩៧៥ បន្ទាប់ពីការដួលរលំនៃរបបសាធារណរដ្ឋខ្មែរ។ ក្នុងរយៈពេលប្រមាណ៣ឆ្នាំ៨ខែនិង២០ថ្ងៃ របបនេះបានបណ្តាលឱ្យមនុស្សស្លាប់ប្រមាណ១.៧លាននាក់ ដោយសារការធ្វើការហួសកម្លាំង ការអត់ឃ្លាន ជំងឺ និងការសម្លាប់។ ខ្មែរក្រហមមានគោលនយោបាយប្រឆាំងនឹងអ្នកចេះដឹង ក្រុមសាសនា អតីតមន្ត្រីនៃរបបមុន និងបានបង្ខំប្រជាជនឱ្យជម្លៀសចេញពីទីក្រុងទៅកាន់ទីជនបទដើម្បីធ្វើកសិកម្ម។"
+                },
+                {
+                    id: 'khmer_new_year',
+                    keywords: ['ចូលឆ្នាំខ្មែរ', 'បុណ្យចូលឆ្នាំ', 'ប្រពៃណីចូលឆ្នាំ'],
+                    questions: [
+                        'តើបុណ្យចូលឆ្នាំខ្មែរប្រារព្ធនៅពេលណា?',
+                        'ប្រាប់ខ្ញុំអំពីប្រពៃណីបុណ្យចូលឆ្នាំខ្មែរ',
+                        'តើមានល្បែងប្រជាប្រិយអ្វីខ្លះក្នុងពិធីបុណ្យចូលឆ្នាំខ្មែរ?'
+                    ],
+                    answer: "បុណ្យចូលឆ្នាំខ្មែរជាទូទៅប្រារព្ធឡើងនៅខែមេសារយៈពេលបីថ្ងៃ (ចាប់ពីថ្ងៃទី១៣ ឬ ១៤ ដល់ថ្ងៃទី១៥ ឬ ១៦)។ វាជាពិធីបុណ្យសាសនាមួយដែលជាពេលសម្រាប់ការជួបជុំគ្រួសារ ការទៅវត្តអារាម និងការលេងល្បែងប្រពៃណី។ ល្បែងប្រជាប្រិយរួមមាន៖ ចោលឈូង បោះអង្គុញ ទាញព្រ័ត្រ លាក់កន្សែង ប្រាប់វែង លេងសេះជ័យ និងល្បែងផ្សេងៗទៀត។ បុណ្យចូលឆ្នាំខ្មែរក៏រួមមានពិធីស្រង់ទឹកព្រះពុទ្ធរូប និងការស្រង់ទឹកចាស់ៗក្នុងគ្រួសារ ដើម្បីសុំពរជ័យ ក៏ដូចជាការរៀបចំម្ហូបអាហារពិសេសៗសម្រាប់ពិធីបុណ្យនេះ។"
+                }
+            ],
+
             responses: {
-                greeting: {
-                    en: [
-                        "Hello! How can I assist you today?",
-                        "Hi there! What can I help you with?",
-                        "Greetings! How may I be of service?"
-                    ],
-                    km: [
-                        "សួស្តី! តើខ្ញុំអាចជួយអ្វីដល់អ្នកបានថ្ងៃនេះ?",
-                        "ជម្រាបសួរ! តើខ្ញុំអាចជួយអ្វីដល់អ្នកបាន?",
-                        "សួស្តី! តើខ្ញុំអាចបម្រើអ្នកយ៉ាងដូចម្តេច?"
-                    ]
-                },
-                about: {
-                    en: [
-                        "I am an AI assistant designed to help answer your questions and provide information.",
-                        "I'm a virtual assistant created to help with various tasks and answer questions.",
-                        "I'm an AI chat assistant, here to provide information and assistance."
-                    ],
-                    km: [
-                        "ខ្ញុំជាជំនួយការ AI ដែលត្រូវបានបង្កើតឡើងដើម្បីជួយឆ្លើយសំណួររបស់អ្នក និងផ្តល់ព័ត៌មាន។",
-                        "ខ្ញុំជាជំនួយការនិម្មិតដែលបង្កើតឡើងដើម្បីជួយក្នុងកិច្ចការផ្សេងៗ និងឆ្លើយសំណួរ។",
-                        "ខ្ញុំជាជំនួយការជជែកកំសាន្ត AI នៅទីនេះដើម្បីផ្តល់ព័ត៌មាននិងជំនួយ។"
-                    ]
-                },
-                weather: {
-                    en: [
-                        "I don't have access to real-time weather data, but I can suggest checking a weather service or app for the current forecast.",
-                        "For the most up-to-date weather information, you might want to check a weather website or app."
-                    ],
-                    km: [
-                        "ខ្ញុំមិនមានការចូលប្រើទិន្នន័យអាកាសធាតុជាក់ស្តែងទេ ប៉ុន្តែខ្ញុំអាចណែនាំឱ្យពិនិត្យមើលសេវាកម្មអាកាសធាតុ ឬកម្មវិធីសម្រាប់ការព្យាករណ៍បច្ចុប្បន្ន។",
-                        "សម្រាប់ព័ត៌មានអាកាសធាតុចុងក្រោយបំផុត អ្នកប្រហែលជាចង់ពិនិត្យមើលគេហទំព័រអាកាសធាតុ ឬកម្មវិធី។"
-                    ]
-                },
-                time: {
-                    en: [
-                        "I don't have access to real-time data, but you can check the time on your device.",
-                        "The current time should be displayed on your device."
-                    ],
-                    km: [
-                        "ខ្ញុំមិនមានការចូលប្រើទិន្នន័យពេលវេលាជាក់ស្តែងទេ ប៉ុន្តែអ្នកអាចពិនិត្យមើលពេលវេលានៅលើឧបករណ៍របស់អ្នក។",
-                        "ពេលវេលាបច្ចុប្បន្នគួរតែបង្ហាញនៅលើឧបករណ៍របស់អ្នក។"
-                    ]
-                },
-                thanks: {
-                    en: [
-                        "You're welcome! Feel free to ask if you have more questions.",
-                        "Happy to help! Let me know if you need anything else.",
-                        "My pleasure! Is there anything else you'd like to know?"
-                    ],
-                    km: [
-                        "សូមស្វាគមន៍! សូមសួរដោយសេរីប្រសិនបើអ្នកមានសំណួរបន្ថែម។",
-                        "រីករាយដែលបានជួយ! សូមប្រាប់ខ្ញុំប្រសិនបើអ្នកត្រូវការអ្វីផ្សេងទៀត។",
-                        "ក្តីរីករាយរបស់ខ្ញុំ! តើមានអ្វីផ្សេងទៀតដែលអ្នកចង់ដឹងទេ?"
-                    ]
-                },
-                help: {
-                    en: [
-                        "I can help answer questions, provide information, or just chat. What do you need help with?",
-                        "I'm here to assist you. Could you please specify what kind of help you need?"
-                    ],
-                    km: [
-                        "ខ្ញុំអាចជួយឆ្លើយសំណួរ ផ្តល់ព័ត៌មាន ឬគ្រាន់តែជជែក។ តើអ្នកត្រូវការជំនួយអ្វី?",
-                        "ខ្ញុំនៅទីនេះដើម្បីជួយអ្នក។ តើអ្នកអាចបញ្ជាក់បានទេថាអ្នកត្រូវការជំនួយប្រភេទណា?"
-                    ]
-                },
-                farewell: {
-                    en: [
-                        "Goodbye! Feel free to come back if you have more questions.",
-                        "Farewell! I'm here whenever you need assistance.",
-                        "Take care! Come back anytime you need help."
-                    ],
-                    km: [
-                        "លាហើយ! សូមត្រឡប់មកវិញប្រសិនបើអ្នកមានសំណួរបន្ថែម។",
-                        "ជំរាបលា! ខ្ញុំនៅទីនេះពេលណាដែលអ្នកត្រូវការជំនួយ។",
-                        "សូមថែរក្សាខ្លួន! សូមត្រឡប់មកវិញពេលណាដែលអ្នកត្រូវការជំនួយ។"
-                    ]
-                },
-                default: {
-                    en: [
-                        "That's an interesting topic. Could you tell me more about what specifically you'd like to know?",
-                        "I'd like to help with that. Could you provide more details about your question?",
-                        "I understand you're asking about that. Could you elaborate a bit more so I can give you a better response?"
-                    ],
-                    km: [
-                        "នោះជាប្រធានបទគួរឱ្យចាប់អារម្មណ៍។ តើអ្នកអាចប្រាប់ខ្ញុំបន្ថែមអំពីអ្វីជាក់លាក់ដែលអ្នកចង់ដឹងបានទេ?",
-                        "ខ្ញុំចង់ជួយរឿងនោះ។ តើអ្នកអាចផ្តល់ព័ត៌មានលម្អិតបន្ថែមអំពីសំណួររបស់អ្នកបានទេ?",
-                        "ខ្ញុំយល់ថាអ្នកកំពុងសួរអំពីរឿងនោះ។ តើអ្នកអាចពន្យល់បន្ថែមបន្តិចដើម្បីឱ្យខ្ញុំអាចផ្តល់ការឆ្លើយតបល្អប្រសើរជាងមុនបានទេ?"
-                    ]
-                },
-                positiveDefault: {
-                    en: [
-                        "I'm glad to hear that! Is there anything specific about it you'd like to discuss?",
-                        "That sounds great! Would you like to tell me more about it?"
-                    ],
-                    km: [
-                        "ខ្ញុំរីករាយដែលឮដូច្នោះ! តើមានអ្វីជាក់លាក់អំពីវាដែលអ្នកចង់ពិភាក្សាទេ?",
-                        "ឮហាក់ដូចជាអស្ចារ្យណាស់! តើអ្នកចង់ប្រាប់ខ្ញុំបន្ថែមអំពីវាទេ?"
-                    ]
-                },
-                negativeDefault: {
-                    en: [
-                        "I'm sorry to hear that. Is there something I can help with?",
-                        "That sounds challenging. Would you like to talk more about it?"
-                    ],
-                    km: [
-                        "ខ្ញុំសោកស្តាយដែលឮដូច្នោះ។ តើមានអ្វីដែលខ្ញុំអាចជួយបានទេ?",
-                        "ឮហាក់ដូចជាមានបញ្ហាប្រឈម។ តើអ្នកចង់និយាយបន្ថែមអំពីវាទេ?"
-                    ]
-                },
-                // FAQ responses - Add this new section
+                english_detected: [
+                    "សូមវាយជាភាសាខ្មែរ។ សូមអរគុណ។",
+                    "ជំនួយការនេះអាចឆ្លើយតបតែជាភាសាខ្មែរប៉ុណ្ណោះ។ សូមសាកល្បងវាយជាភាសាខ្មែរ។",
+                    "សូមប្រើភាសាខ្មែរដើម្បីទំនាក់ទំនងជាមួយខ្ញុំ។"
+                ],
+                greeting: [
+                    "សួស្តី! តើខ្ញុំអាចជួយអ្វីដល់អ្នកបានថ្ងៃនេះ?",
+                    "ជម្រាបសួរ! តើខ្ញុំអាចជួយអ្វីដល់អ្នកបាន?",
+                    "សួស្តី! តើខ្ញុំអាចបម្រើអ្នកយ៉ាងដូចម្តេច?"
+                ],
+                about: [
+                    "ខ្ញុំជាជំនួយការ AI ដែលត្រូវបានបង្កើតឡើងដើម្បីជួយឆ្លើយសំណួររបស់អ្នក និងផ្តល់ព័ត៌មាន។",
+                    "ខ្ញុំជាជំនួយការនិម្មិតដែលបង្កើតឡើងដើម្បីជួយក្នុងកិច្ចការផ្សេងៗ និងឆ្លើយសំណួរ។",
+                    "ខ្ញុំជាជំនួយការជជែកកំសាន្ត AI នៅទីនេះដើម្បីផ្តល់ព័ត៌មាននិងជំនួយ។"
+                ],
+                weather: [
+                    "ខ្ញុំមិនមានការចូលប្រើទិន្នន័យអាកាសធាតុជាក់ស្តែងទេ ប៉ុន្តែខ្ញុំអាចណែនាំឱ្យពិនិត្យមើលសេវាកម្មអាកាសធាតុ ឬកម្មវិធីសម្រាប់ការព្យាករណ៍បច្ចុប្បន្ន។",
+                    "សម្រាប់ព័ត៌មានអាកាសធាតុចុងក្រោយបំផុត អ្នកប្រហែលជាចង់ពិនិត្យមើលគេហទំព័រអាកាសធាតុ ឬកម្មវិធី។"
+                ],
+                time: [
+                    "ខ្ញុំមិនមានការចូលប្រើទិន្នន័យពេលវេលាជាក់ស្តែងទេ ប៉ុន្តែអ្នកអាចពិនិត្យមើលពេលវេលានៅលើឧបករណ៍របស់អ្នក។",
+                    "ពេលវេលាបច្ចុប្បន្នគួរតែបង្ហាញនៅលើឧបករណ៍របស់អ្នក។"
+                ],
+                thanks: [
+                    "សូមស្វាគមន៍! សូមសួរដោយសេរីប្រសិនបើអ្នកមានសំណួរបន្ថែម។",
+                    "រីករាយដែលបានជួយ! សូមប្រាប់ខ្ញុំប្រសិនបើអ្នកត្រូវការអ្វីផ្សេងទៀត។",
+                    "ក្តីរីករាយរបស់ខ្ញុំ! តើមានអ្វីផ្សេងទៀតដែលអ្នកចង់ដឹងទេ?"
+                ],
+                help: [
+                    "ខ្ញុំអាចជួយឆ្លើយសំណួរ ផ្តល់ព័ត៌មាន ឬគ្រាន់តែជជែក។ តើអ្នកត្រូវការជំនួយអ្វី?",
+                    "ខ្ញុំនៅទីនេះដើម្បីជួយអ្នក។ តើអ្នកអាចបញ្ជាក់បានទេថាអ្នកត្រូវការជំនួយប្រភេទណា?"
+                ],
+                farewell: [
+                    "លាហើយ! សូមត្រឡប់មកវិញប្រសិនបើអ្នកមានសំណួរបន្ថែម។",
+                    "ជំរាបលា! ខ្ញុំនៅទីនេះពេលណាដែលអ្នកត្រូវការជំនួយ។",
+                    "សូមថែរក្សាខ្លួន! សូមត្រឡប់មកវិញពេលណាដែលអ្នកត្រូវការជំនួយ។"
+                ],
+                default: [
+                    "នោះជាប្រធានបទគួរឱ្យចាប់អារម្មណ៍។ តើអ្នកអាចប្រាប់ខ្ញុំបន្ថែមអំពីអ្វីជាក់លាក់ដែលអ្នកចង់ដឹងបានទេ?",
+                    "ខ្ញុំចង់ជួយរឿងនោះ។ តើអ្នកអាចផ្តល់ព័ត៌មានលម្អិតបន្ថែមអំពីសំណួររបស់អ្នកបានទេ?",
+                    "ខ្ញុំយល់ថាអ្នកកំពុងសួរអំពីរឿងនោះ។ តើអ្នកអាចពន្យល់បន្ថែមបន្តិចដើម្បីឱ្យខ្ញុំអាចផ្តល់ការឆ្លើយតបល្អប្រសើរជាងមុនបានទេ?"
+                ],
+                positiveDefault: [
+                    "ខ្ញុំរីករាយដែលឮដូច្នោះ! តើមានអ្វីជាក់លាក់អំពីវាដែលអ្នកចង់ពិភាក្សាទេ?",
+                    "ឮហាក់ដូចជាអស្ចារ្យណាស់! តើអ្នកចង់ប្រាប់ខ្ញុំបន្ថែមអំពីវាទេ?"
+                ],
+                negativeDefault: [
+                    "ខ្ញុំសោកស្តាយដែលឮដូច្នោះ។ តើមានអ្វីដែលខ្ញុំអាចជួយបានទេ?",
+                    "ឮហាក់ដូចជាមានបញ្ហាប្រឈម។ តើអ្នកចង់និយាយបន្ថែមអំពីវាទេ?"
+                ],
                 faqs: {
-                    en: {
-                        // Format: 'question keyword': 'answer'
-                        'open hours': "We are open Monday to Friday from 9am to 5pm.",
-                        'location': "Our main office is located at 123 Main Street, Downtown.",
-                        'contact': "You can contact us at support@example.com or call (555) 123-4567.",
-                        'pricing': "Our basic plan starts at $9.99/month. Premium plans are available from $19.99/month.",
-                        'refund policy': "We offer a 30-day money-back guarantee on all our products and services.",
-                        'shipping': "Standard shipping takes 3-5 business days. Express shipping (1-2 days) is available for an additional fee.",
-                        'return policy': "Items can be returned within 30 days of purchase. They must be in original condition with tags attached.",
-                        'payment methods': "We accept all major credit cards, PayPal, and bank transfers.",
-                        'warranty': "All our products come with a 1-year limited warranty against manufacturing defects.",
-                        'discount': "We offer a 10% discount for first-time customers. Use code WELCOME10 at checkout."
-                    },
-                    km: {
-                        'open hours': "យើងបើកចាប់ពីថ្ងៃច័ន្ទដល់ថ្ងៃសុក្រពីម៉ោង ៩ព្រឹកដល់ម៉ោង ៥ល្ងាច។",
-                        'location': "ការិយាល័យកណ្តាលរបស់យើងមានទីតាំងនៅ ១២៣ ផ្លូវមេន ក្នុងទីក្រុង។",
-                        'contact': "អ្នកអាចទាក់ទងមកយើងតាមរយៈ support@example.com ឬហៅទូរស័ព្ទមកលេខ (៥៥៥) ១២៣-៤៥៦៧",
-                        'pricing': "ផែនការមូលដ្ឋានរបស់យើងចាប់ផ្តើមពី $៩.៩៩/ខែ។ ផែនការពិសេសមានតម្លៃចាប់ពី $១៩.៩៩/ខែ។",
-                        'refund policy': "យើងផ្តល់ជូនការធានាសងប្រាក់វិញក្នុងរយៈពេល ៣០ ថ្ងៃលើផលិតផល និងសេវាកម្មទាំងអស់របស់យើង។",
-                        'shipping': "ការដឹកជញ្ជូនស្តង់ដារចំណាយពេល ៣-៥ ថ្ងៃធ្វើការ។ ការដឹកជញ្ជូនរហ័ស (១-២ ថ្ងៃ) មានសម្រាប់ថ្លៃបន្ថែម។",
-                        'return policy': "ទំនិញអាចត្រូវបានប្រគល់មកវិញក្នុងរយៈពេល ៣០ ថ្ងៃនៃការទិញ។ ពួកវាត្រូវតែស្ថិតក្នុងសភាពដើមជាមួយនឹងស្លាកភ្ជាប់។",
-                        'payment methods': "យើងទទួលយកកាតឥណទានសំខាន់ៗទាំងអស់ PayPal និងការផ្ទេរតាមធនាគារ។",
-                        'warranty': "ផលិតផលទាំងអស់របស់យើងមានការធានាមានកំណត់ ១ ឆ្នាំប្រឆាំងនឹងកំហុសក្នុងការផលិត។",
-                        'តើលោក ហ៊ុន ម៉ាណែត នាយករដ្ឋមន្រ្តីរបស់កម្ពុជា ជានរណា?': "លោក ហ៊ុន ម៉ាណែត នាយករដ្ឋមន្ត្រីតែងតាំង ឈរនៅមុខរដ្ឋសភាជាតិ មុនពេលចូលរួមសម័យប្រជុំដំបូង សម្រាប់នីតិកាលទី ៧ នៃរដ្ឋសភា រាជធានីភ្នំពេញ ថ្ងៃទី ២១ ខែសីហា ឆ្នាំ ២០២៣។",
-                        'discount': "យើងផ្តល់ជូនការបញ្ចុះតម្លៃ ១០% សម្រាប់អតិថិជនលើកដំបូង។ ប្រើកូដ WELCOME10 នៅពេលទូទាត់។"
-                    }
+                    'តើលោក ហ៊ុន ម៉ាណែត នាយករដ្ឋមន្រ្តីរបស់កម្ពុជា ជានរណា?':
+                        "លោក ហ៊ុន ម៉ាណែត នាយករដ្ឋមន្ត្រីតែងតាំង ឈរនៅមុខរដ្ឋសភាជាតិ មុនពេលចូលរួមសម័យប្រជុំដំបូង សម្រាប់នីតិកាលទី ៧ នៃរដ្ឋសភា រាជធានីភ្នំពេញ ថ្ងៃទី ២១ ខែសីហា ឆ្នាំ ២០២៣។",
+                    'តើលោក ហ៊ុន សែន ជានរណា?':
+                        "លោក ហ៊ុន សែន គឺជានាយករដ្ឋមន្រ្តីនៃកម្ពុជា និងជាអ្នកដឹកនាំគណបក្សប្រជាជនកម្ពុជា។",
+                    'តើអាកាសធាតុថ្ងៃនេះនៅភ្នំពេញយ៉ាងដូចម្តេច?':
+                        "សូមពិនិត្យកម្មវិធីអាកាសធាតុឬគេហទំព័រដើម្បីទទួលបានព័ត៌មានអាកាសធាតុថ្មីៗ។",
+                    'តើអ្វីទៅជាសមាគមអាស៊ាន?':
+                        "សមាគមអាស៊ាន គឺជាសមាគមនៃប្រទេសអាស៊ីអាគ្នេយ៍ ដែលមានគោលបំណងសហការនិងអភិវឌ្ឍន៍សេដ្ឋកិច្ច។",
+                    'តើអ្វីទៅជាអង្គការសហប្រជាជាតិ?':
+                        "អង្គការសហប្រជាជាតិ គឺជាអង្គការអន្តរជាតិនៅក្នុងការបង្កើតសន្តិភាព និងសុវត្ថិភាពនៅលើពិភពលោក។",
+                    'តើរដ្ឋប្រហារទម្លាក់សម្តេចនរោត្តម សីហនុ កើតឡើងនៅឆ្នាំណា?និងបាននាំមកអ្វីខ្លះសម្រាប់កម្ពុជា?':
+                        "រដ្ឋប្រហារទម្លាក់សម្តេចនរោត្តមសីហនុ កើតឡើងនៅឆ្នាំ ១៩៧០ រដ្ឋប្រហារនេះបាននាំមកនូវ៖\n\
+            • ការប្ដូររបបរាជានិយមមកជាសាធារណរដ្ឋ\n\
+            • ប្រទេសបែកជាពីរបក្សណគឺនៅទីប្រជុំជនគ្រប់គ្រងដោយសាធារណរដ្ឋខ្មែរ និងនៅទីជនបទគ្រប់គ្រងដោយបក្សកុម្មុយនីស្ត\n\
+            • នៅក្រុងប៉េកាំងព្រះនរោត្តមសីហនុបង្កើតរដ្ឋាភិបាលនិរទេសខ្លួន\n\
+            • អំពាវនាវឲ្យប្រជាជនចូលព្រៃម៉ាក់គឺ គឺដើម្បីប្រឆាំងរបបសាធារណរដ្ឋខ្មែរ\n\
+            • មានសង្គ្រាមរវាងពួកសាធារណរដ្ឋខ្មែរនិងពួកខ្មែរក្រហម\n\
+            • សង្គ្រាមស៊ីវិលធ្វើឲ្យមនុស្សស្លាប់របួសនិងពិការជាច្រើន\n\
+            • ការកើតឡើងនៅអំពើពុករលួយ\n\
+            • ទីក្រុងភ្នំពេញឡោមព័ទ្ធដោយពួកខ្មែរក្រហម\n\
+            • ប្រជាជនរស់នៅដោយខ្វះជម្រកខ្វះសុវត្ថិភាព ខ្វះស្បៀងអាហារខ្វះសុខុមាលភាព\n\
+            • ប្រជាជននៅទីក្រុងភ្នំពេញរស់នៅដោយការភ័យខ្លាច\n\
+            • គ្រឹះស្ថានសិក្សាមួយចំនួនត្រូវបិទទ្វារព្រោះលោកគ្រូអ្នកគ្រូបានរត់ភៀសខ្លួន\n\
+            • កើតមានសង្គ្រាមត្រជាក់\n\
+            • ខ្មែរក្រហមមានឱកាសឡើងកាន់អំណាច\n\
+            • ខ្មែរក្រហមបានសម្លាប់ប្រជាជនថាជាខ្មាំងរបស់អង្គការ។",
                 }
             },
 
             // Check if a user message matches any FAQ
-            checkForFAQ(message, lang) {
-                // Default to English if language not specified
-                const language = lang || 'en';
+            checkForFAQ(message) {
                 const lowerMessage = message.toLowerCase();
 
-                // Check if message contains any FAQ keywords
-                for (const [keyword, answer] of Object.entries(this.responses.faqs[language])) {
-                    if (lowerMessage.includes(keyword.toLowerCase())) {
+                // First check exact matches in FAQ questions
+                for (const faq of this.faqData) {
+                    for (const question of faq.questions) {
+                        if (lowerMessage.includes(question.toLowerCase())) {
+                            return faq.answer;
+                        }
+                    }
+                }
+
+                // Then check for keywords
+                for (const faq of this.faqData) {
+                    for (const keyword of faq.keywords) {
+                        if (lowerMessage.includes(keyword.toLowerCase())) {
+                            return faq.answer;
+                        }
+                    }
+                }
+
+                // Finally check the responses.faqs object
+                for (const [question, answer] of Object.entries(this.responses.faqs)) {
+                    if (lowerMessage.includes(question.toLowerCase())) {
                         return answer;
                     }
                 }
@@ -1230,10 +1330,15 @@
             generate(userMessage) {
                 // Context tracking and enhanced response generation
                 const analysis = LanguageProcessor.detectIntent(userMessage);
-                const lang = analysis.lang || (LanguageProcessor.isKhmer(userMessage) ? 'km' : 'en');
+
+                // If English is detected, immediately return a message to type in Khmer
+                if (analysis.intent === 'english_detected') {
+                    const responses = this.responses.english_detected;
+                    return responses[Math.floor(Math.random() * responses.length)];
+                }
 
                 // First check if this matches any FAQ
-                const faqResponse = this.checkForFAQ(userMessage, lang);
+                const faqResponse = this.checkForFAQ(userMessage);
                 if (faqResponse) {
                     return faqResponse;
                 }
@@ -1248,7 +1353,7 @@
                 }
 
                 // Use contextually appropriate responses
-                const responses = this.responses[responseType][lang];
+                const responses = this.responses[responseType];
                 return responses[Math.floor(Math.random() * responses.length)];
             }
         };
@@ -1256,57 +1361,81 @@
         // Chat Manager - coordinates all interactions
         const ChatManager = {
             init() {
-                ThemeManager.init();
-                // Initialize the ChatUI
-                ChatUI.init();
+                try {
+                    ThemeManager.init();
+                    ChatUI.init();
 
-                messageForm.addEventListener('submit', this.handleSendMessage.bind(this));
-                messageInput.addEventListener('input', () => ChatUI.updateSendButtonState());
+                    messageForm.addEventListener('submit', (e) => this.handleSendMessage(e));
+                    messageInput.addEventListener('input', () => ChatUI.updateSendButtonState());
 
-                // Focus input on page load
-                messageInput.focus();
+                    // Focus input on page load
+                    messageInput.focus();
 
-                // Set initial message
-                ChatUI.setInitialGreeting();
-                ChatUI.updateSendButtonState();
+                    // Set initial message
+                    ChatUI.setInitialGreeting();
+                    ChatUI.updateSendButtonState();
+                } catch (e) {
+                    console.error('Chat initialization failed:', e);
+                }
             },
 
             handleSendMessage(e) {
                 e.preventDefault();
 
-                const message = messageInput.value.trim();
-                if (!message) return;
+                try {
+                    const message = messageInput.value.trim();
+                    if (!message) return;
 
-                // Add user message
-                ChatUI.addMessage(message, true);
-                messageInput.value = '';
-                ChatUI.updateSendButtonState();
+                    // Add user message
+                    ChatUI.addMessage(message, true);
+                    messageInput.value = '';
+                    ChatUI.updateSendButtonState();
 
-                // Simulate AI thinking and responding
-                this.simulateResponse(message);
+                    // Simulate AI thinking and responding
+                    this.simulateResponse(message);
+                } catch (e) {
+                    console.error('Failed to handle message:', e);
+                }
             },
 
             simulateResponse(userMessage) {
-                // Show typing indicator
-                const typingIndicator = ChatUI.createTypingIndicator();
+                try {
+                    // Show typing indicator
+                    const typingIndicator = ChatUI.createTypingIndicator();
 
-                // Calculate dynamic delay based on message complexity
-                const baseDelay = 1000;
-                const complexityFactor = Math.min(userMessage.length / 20, 3); // Cap at 3x
-                const randomVariation = Math.random() * 500;
-                const typingDelay = baseDelay + (complexityFactor * 500) + randomVariation;
+                    // Calculate dynamic delay based on message complexity
+                    const baseDelay = 1000;
+                    // For English detection, use a shorter delay
+                    const isEnglish = LanguageProcessor.isEnglish(userMessage);
+                    const complexityFactor = isEnglish ? 0.5 : Math.min(userMessage.length / 20, 3); // Cap at 3x
+                    const randomVariation = Math.random() * 500;
+                    const typingDelay = baseDelay + (complexityFactor * 500) + randomVariation;
 
-                // Generate and display response after appropriate delay
-                setTimeout(() => {
-                    typingIndicator.remove();
-                    const response = ResponseGenerator.generate(userMessage);
-                    ChatUI.addMessage(response);
-                }, typingDelay);
+                    // Generate and display response after appropriate delay
+                    setTimeout(() => {
+                        try {
+                            typingIndicator.remove();
+                            const response = ResponseGenerator.generate(userMessage);
+                            ChatUI.addMessage(response);
+                        } catch (e) {
+                            console.error('Failed to generate response:', e);
+                            ChatUI.addMessage("កំហុសបានកើតឡើងក្នុងការឆ្លើយតប។ សូមព្យាយាមម្តងទៀត។");
+                        }
+                    }, typingDelay);
+                } catch (e) {
+                    console.error('Failed to simulate response:', e);
+                }
             }
         };
 
         // Initialize the application when the DOM is fully loaded
-        document.addEventListener('DOMContentLoaded', () => ChatManager.init());
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                ChatManager.init();
+            } catch (e) {
+                console.error('Application initialization failed:', e);
+            }
+        });
     </script>
 </body>
 
