@@ -1286,222 +1286,441 @@
     <script src="faqs.js"></script>
 
     <script>
-        // DOM Elements
-        const themeToggle = document.getElementById('themeToggle');
-        const messagesContainer = document.getElementById('messagesContainer');
-        const messageForm = document.getElementById('messageForm');
-        const messageInput = document.getElementById('messageInput');
-        const sendButton = document.getElementById('sendButton');
-        const sidebarToggle = document.getElementById('sidebarToggle');
-        const closeSidebar = document.getElementById('closeSidebar');
-        const sidebar = document.getElementById('sidebar');
-        const appContainer = document.querySelector('.app-container');
-        const authButtons = document.getElementById('authButtons');
-        const userProfile = document.getElementById('userProfile');
-        const userAvatar = document.getElementById('userAvatar');
-        const logoutButton = document.getElementById('logoutButton');
-        const loginButton = document.getElementById('loginButton');
-        const signupButton = document.getElementById('signupButton');
-        const loginModal = document.getElementById('loginModal');
-        const signupModal = document.getElementById('signupModal');
-        const closeLoginModal = document.getElementById('closeLoginModal');
-        const closeSignupModal = document.getElementById('closeSignupModal');
-        const showSignup = document.getElementById('showSignup');
-        const showLogin = document.getElementById('showLogin');
-        const loginForm = document.getElementById('loginForm');
-        const signupForm = document.getElementById('signupForm');
-        const loginWithGoogle = document.getElementById('loginWithGoogle');
-        const loginWithFacebook = document.getElementById('loginWithFacebook');
-        const signupWithGoogle = document.getElementById('signupWithGoogle');
-        const signupWithFacebook = document.getElementById('signupWithFacebook');
+        document.addEventListener('DOMContentLoaded', () => {
+            // DOM element references
+            const loginButton = document.getElementById('loginButton');
+            const signupButton = document.getElementById('signupButton');
+            const logoutButton = document.getElementById('logoutButton');
+            const loginModal = document.getElementById('loginModal');
+            const signupModal = document.getElementById('signupModal');
+            const closeLoginModal = document.getElementById('closeLoginModal');
+            const closeSignupModal = document.getElementById('closeSignupModal');
+            const showSignup = document.getElementById('showSignup');
+            const showLogin = document.getElementById('showLogin');
+            const loginForm = document.getElementById('loginForm');
+            const signupForm = document.getElementById('signupForm');
+            const loginWithGoogle = document.getElementById('loginWithGoogle');
+            const loginWithFacebook = document.getElementById('loginWithFacebook');
+            const signupWithGoogle = document.getElementById('signupWithGoogle');
+            const signupWithFacebook = document.getElementById('signupWithFacebook');
+            const authButtons = document.getElementById('authButtons');
+            const userProfile = document.getElementById('userProfile');
+            const userAvatar = document.getElementById('userAvatar');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const closeSidebar = document.getElementById('closeSidebar');
+            const appContainer = document.getElementById('appContainer');
+            const errorMessageLogin = document.getElementById('errorMessageLogin');
+            const errorMessageSignup = document.getElementById('errorMessageSignup');
 
-        // Check if required DOM elements exist
-        if (!themeToggle || !messagesContainer || !messageForm || !messageInput || !sendButton) {
-            console.error('Required DOM elements are missing');
-            throw new Error('Required DOM elements are missing');
-        }
-
-        // Auth state management
-        const AuthManager = {
-            currentUser: null,
-
-            init() {
-                // Check localStorage for existing session
-                const savedUser = localStorage.getItem('aiChatUser');
-                if (savedUser) {
-                    this.currentUser = JSON.parse(savedUser);
-                    this.updateAuthUI();
+            // Check for localStorage availability
+            const isLocalStorageAvailable = () => {
+                try {
+                    localStorage.setItem('test', 'test');
+                    localStorage.removeItem('test');
+                    return true;
+                } catch (e) {
+                    return false;
                 }
+            };
 
-                // Set up event listeners
-                loginButton.addEventListener('click', () => this.showModal('login'));
-                signupButton.addEventListener('click', () => this.showModal('signup'));
-                logoutButton.addEventListener('click', () => this.logout());
-                closeLoginModal.addEventListener('click', () => this.hideModal('login'));
-                closeSignupModal.addEventListener('click', () => this.hideModal('signup'));
-                showSignup.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    this.hideModal('login');
-                    this.showModal('signup');
-                });
-                showLogin.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    this.hideModal('signup');
-                    this.showModal('login');
-                });
+            // Auth state management
+            const AuthManager = {
+                currentUser: null,
 
-                // Form submissions
-                loginForm.addEventListener('submit', (e) => this.handleLogin(e));
-                signupForm.addEventListener('submit', (e) => this.handleSignup(e));
-
-                // Social login buttons
-                loginWithGoogle.addEventListener('click', () => this.loginWithGoogle());
-                loginWithFacebook.addEventListener('click', () => this.loginWithFacebook());
-                signupWithGoogle.addEventListener('click', () => this.loginWithGoogle());
-                signupWithFacebook.addEventListener('click', () => this.loginWithFacebook());
-            },
-
-            showModal(type) {
-                if (type === 'login') {
-                    loginModal.classList.add('active');
-                } else if (type === 'signup') {
-                    signupModal.classList.add('active');
-                }
-            },
-
-            hideModal(type) {
-                if (type === 'login') {
-                    loginModal.classList.remove('active');
-                } else if (type === 'signup') {
-                    signupModal.classList.remove('active');
-                }
-            },
-
-            updateAuthUI() {
-                if (this.currentUser) {
-                    authButtons.style.display = 'none';
-                    userProfile.style.display = 'flex';
-                    userAvatar.textContent = this.currentUser.name.charAt(0).toUpperCase();
-                    sidebar.style.display = 'block';
-                } else {
-                    authButtons.style.display = 'flex';
-                    userProfile.style.display = 'none';
-                    sidebar.style.display = 'none';
-                }
-            },
-
-            handleLogin(e) {
-                e.preventDefault();
-                const email = document.getElementById('loginEmail').value;
-                const password = document.getElementById('loginPassword').value;
-
-                // Simulate login - in a real app, you would call your backend here
-                this.currentUser = {
-                    id: '123',
-                    name: 'Test User',
-                    email: email,
-                    avatar: null
-                };
-
-                localStorage.setItem('aiChatUser', JSON.stringify(this.currentUser));
-                this.updateAuthUI();
-                this.hideModal('login');
-
-                // Clear form
-                loginForm.reset();
-            },
-
-            handleSignup(e) {
-                e.preventDefault();
-                const name = document.getElementById('signupName').value;
-                const email = document.getElementById('signupEmail').value;
-                const password = document.getElementById('signupPassword').value;
-                const confirmPassword = document.getElementById('signupConfirmPassword').value;
-
-                if (password !== confirmPassword) {
-                    alert('Passwords do not match');
-                    return;
-                }
-
-                // Simulate signup - in a real app, you would call your backend here
-                this.currentUser = {
-                    id: '123',
-                    name: name,
-                    email: email,
-                    avatar: null
-                };
-
-                localStorage.setItem('aiChatUser', JSON.stringify(this.currentUser));
-                this.updateAuthUI();
-                this.hideModal('signup');
-
-                // Clear form
-                signupForm.reset();
-            },
-
-            loginWithGoogle() {
-                // Simulate Google login - in a real app, you would use Firebase or another auth service
-                this.currentUser = {
-                    id: 'google-123',
-                    name: 'Google User',
-                    email: 'googleuser@example.com',
-                    avatar: null
-                };
-
-                localStorage.setItem('aiChatUser', JSON.stringify(this.currentUser));
-                this.updateAuthUI();
-                this.hideModal('login');
-                this.hideModal('signup');
-            },
-
-            loginWithFacebook() {
-                // Simulate Facebook login - in a real app, you would use Firebase or another auth service
-                this.currentUser = {
-                    id: 'facebook-123',
-                    name: 'Facebook User',
-                    email: 'facebookuser@example.com',
-                    avatar: null
-                };
-
-                localStorage.setItem('aiChatUser', JSON.stringify(this.currentUser));
-                this.updateAuthUI();
-                this.hideModal('login');
-                this.hideModal('signup');
-            },
-
-            logout() {
-                this.currentUser = null;
-                localStorage.removeItem('aiChatUser');
-                this.updateAuthUI();
-            }
-        };
-
-        // Sidebar management
-        const SidebarManager = {
-            init() {
-                sidebarToggle.addEventListener('click', () => this.toggleSidebar());
-                closeSidebar.addEventListener('click', () => this.closeSidebar());
-
-                // Close sidebar when clicking outside
-                document.addEventListener('click', (e) => {
-                    if (!sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
-                        this.closeSidebar();
+                init() {
+                    if (!isLocalStorageAvailable()) {
+                        console.error('localStorage is not available. Some features might not work.');
+                        return;
                     }
-                });
-            },
 
-            toggleSidebar() {
-                appContainer.classList.toggle('sidebar-open');
-            },
+                    // Check localStorage for existing session
+                    const savedUser = localStorage.getItem('aiChatUser');
+                    if (savedUser) {
+                        try {
+                            this.currentUser = JSON.parse(savedUser);
+                            this.updateAuthUI();
+                        } catch (e) {
+                            console.error('Failed to parse user data:', e);
+                            localStorage.removeItem('aiChatUser');
+                        }
+                    }
 
-            openSidebar() {
-                appContainer.classList.add('sidebar-open');
-            },
+                    // Set up event listeners
+                    if (loginButton) loginButton.addEventListener('click', () => this.showModal('login'));
+                    if (signupButton) signupButton.addEventListener('click', () => this.showModal('signup'));
+                    if (logoutButton) logoutButton.addEventListener('click', () => this.logout());
+                    if (closeLoginModal) closeLoginModal.addEventListener('click', () => this.hideModal('login'));
+                    if (closeSignupModal) closeSignupModal.addEventListener('click', () => this.hideModal('signup'));
 
-            closeSidebar() {
-                appContainer.classList.remove('sidebar-open');
-            }
-        };
+                    if (showSignup) {
+                        showSignup.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            this.hideModal('login');
+                            setTimeout(() => this.showModal('signup'), 100); // Small delay to avoid flash
+                        });
+                    }
+
+                    if (showLogin) {
+                        showLogin.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            this.hideModal('signup');
+                            setTimeout(() => this.showModal('login'), 100); // Small delay to avoid flash
+                        });
+                    }
+
+                    // Form submissions
+                    if (loginForm) loginForm.addEventListener('submit', (e) => this.handleLogin(e));
+                    if (signupForm) signupForm.addEventListener('submit', (e) => this.handleSignup(e));
+
+                    // Social login buttons
+                    if (loginWithGoogle) loginWithGoogle.addEventListener('click', () => this.loginWithGoogle());
+                    if (loginWithFacebook) loginWithFacebook.addEventListener('click', () => this.loginWithFacebook());
+                    if (signupWithGoogle) signupWithGoogle.addEventListener('click', () => this.loginWithGoogle());
+                    if (signupWithFacebook) signupWithFacebook.addEventListener('click', () => this.loginWithFacebook());
+
+                    // Close modals on ESC key
+                    document.addEventListener('keydown', (e) => {
+                        if (e.key === 'Escape') {
+                            this.hideModal('login');
+                            this.hideModal('signup');
+                        }
+                    });
+
+                    // Close modals when clicking outside
+                    window.addEventListener('click', (e) => {
+                        if (e.target === loginModal) this.hideModal('login');
+                        if (e.target === signupModal) this.hideModal('signup');
+                    });
+                },
+
+                showModal(type) {
+                    this.clearErrors();
+                    if (type === 'login' && loginModal) {
+                        loginModal.classList.add('active');
+                        document.getElementById('loginEmail')?.focus();
+                    } else if (type === 'signup' && signupModal) {
+                        signupModal.classList.add('active');
+                        document.getElementById('signupName')?.focus();
+                    }
+                },
+
+                hideModal(type) {
+                    if (type === 'login' && loginModal) {
+                        loginModal.classList.remove('active');
+                        if (loginForm) loginForm.reset();
+                    } else if (type === 'signup' && signupModal) {
+                        signupModal.classList.remove('active');
+                        if (signupForm) signupForm.reset();
+                    }
+                    this.clearErrors();
+                },
+
+                clearErrors() {
+                    if (errorMessageLogin) errorMessageLogin.textContent = '';
+                    if (errorMessageSignup) errorMessageSignup.textContent = '';
+                },
+
+                displayError(type, message) {
+                    const errorElement = type === 'login' ? errorMessageLogin : errorMessageSignup;
+                    if (errorElement) {
+                        errorElement.textContent = message;
+                        errorElement.style.display = 'block';
+                    } else {
+                        alert(message); // Fallback if error element doesn't exist
+                    }
+                },
+
+                updateAuthUI() {
+                    if (this.currentUser) {
+                        if (authButtons) authButtons.style.display = 'none';
+                        if (userProfile) {
+                            userProfile.style.display = 'flex';
+                            if (userAvatar) {
+                                const firstLetter = this.currentUser.name ? this.currentUser.name.charAt(0).toUpperCase() : '?';
+                                userAvatar.textContent = firstLetter;
+                            }
+                        }
+                        if (sidebar) sidebar.style.display = 'block';
+                    } else {
+                        if (authButtons) authButtons.style.display = 'flex';
+                        if (userProfile) userProfile.style.display = 'none';
+                        if (sidebar) sidebar.style.display = 'none';
+                    }
+                },
+
+                validateEmail(email) {
+                    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    return re.test(String(email).toLowerCase());
+                },
+
+                validatePassword(password) {
+                    return password.length >= 8; // Simple validation, can be more complex
+                },
+
+                handleLogin(e) {
+                    e.preventDefault();
+                    const emailInput = document.getElementById('loginEmail');
+                    const passwordInput = document.getElementById('loginPassword');
+
+                    if (!emailInput || !passwordInput) {
+                        console.error('Login form inputs not found');
+                        return;
+                    }
+
+                    const email = emailInput.value.trim();
+                    const password = passwordInput.value;
+
+                    // Validate inputs
+                    if (!email) {
+                        this.displayError('login', 'Email is required');
+                        return;
+                    }
+
+                    if (!this.validateEmail(email)) {
+                        this.displayError('login', 'Please enter a valid email address');
+                        return;
+                    }
+
+                    if (!password) {
+                        this.displayError('login', 'Password is required');
+                        return;
+                    }
+
+                    // In a real app, you would call your backend API here
+                    // For this example, we'll simulate a successful login
+                    try {
+                        // Simulate API call
+                        setTimeout(() => {
+                            // Generate a more unique ID
+                            const uniqueId = 'user_' + Date.now().toString(36) + Math.random().toString(36).substr(2);
+
+                            this.currentUser = {
+                                id: uniqueId,
+                                name: email.split('@')[0], // Use part of email as name for demo
+                                email: email,
+                                avatar: null
+                            };
+
+                            localStorage.setItem('aiChatUser', JSON.stringify(this.currentUser));
+                            this.updateAuthUI();
+                            this.hideModal('login');
+
+                            // Clear form
+                            if (loginForm) loginForm.reset();
+                        }, 500); // Simulate network delay
+                    } catch (error) {
+                        console.error('Login error:', error);
+                        this.displayError('login', 'Login failed. Please try again.');
+                    }
+                },
+
+                handleSignup(e) {
+                    e.preventDefault();
+                    const nameInput = document.getElementById('signupName');
+                    const emailInput = document.getElementById('signupEmail');
+                    const passwordInput = document.getElementById('signupPassword');
+                    const confirmPasswordInput = document.getElementById('signupConfirmPassword');
+
+                    if (!nameInput || !emailInput || !passwordInput || !confirmPasswordInput) {
+                        console.error('Signup form inputs not found');
+                        return;
+                    }
+
+                    const name = nameInput.value.trim();
+                    const email = emailInput.value.trim();
+                    const password = passwordInput.value;
+                    const confirmPassword = confirmPasswordInput.value;
+
+                    // Validate inputs
+                    if (!name) {
+                        this.displayError('signup', 'Name is required');
+                        return;
+                    }
+
+                    if (!email) {
+                        this.displayError('signup', 'Email is required');
+                        return;
+                    }
+
+                    if (!this.validateEmail(email)) {
+                        this.displayError('signup', 'Please enter a valid email address');
+                        return;
+                    }
+
+                    if (!password) {
+                        this.displayError('signup', 'Password is required');
+                        return;
+                    }
+
+                    if (!this.validatePassword(password)) {
+                        this.displayError('signup', 'Password must be at least 8 characters long');
+                        return;
+                    }
+
+                    if (password !== confirmPassword) {
+                        this.displayError('signup', 'Passwords do not match');
+                        return;
+                    }
+
+                    // In a real app, you would call your backend API here
+                    // For this example, we'll simulate a successful signup
+                    try {
+                        // Simulate API call
+                        setTimeout(() => {
+                            // Generate a more unique ID
+                            const uniqueId = 'user_' + Date.now().toString(36) + Math.random().toString(36).substr(2);
+
+                            this.currentUser = {
+                                id: uniqueId,
+                                name: name,
+                                email: email,
+                                avatar: null
+                            };
+
+                            localStorage.setItem('aiChatUser', JSON.stringify(this.currentUser));
+                            this.updateAuthUI();
+                            this.hideModal('signup');
+
+                            // Clear form
+                            if (signupForm) signupForm.reset();
+                        }, 500); // Simulate network delay
+                    } catch (error) {
+                        console.error('Signup error:', error);
+                        this.displayError('signup', 'Signup failed. Please try again.');
+                    }
+                },
+
+                loginWithGoogle() {
+                    // In a real app, you would integrate with the Google OAuth API
+                    try {
+                        // Simulate API call
+                        setTimeout(() => {
+                            const uniqueId = 'google_' + Date.now().toString(36);
+
+                            this.currentUser = {
+                                id: uniqueId,
+                                name: 'Google User',
+                                email: 'googleuser@example.com',
+                                avatar: null
+                            };
+
+                            localStorage.setItem('aiChatUser', JSON.stringify(this.currentUser));
+                            this.updateAuthUI();
+                            this.hideModal('login');
+                            this.hideModal('signup');
+                        }, 800); // Simulate network delay
+                    } catch (error) {
+                        console.error('Google login error:', error);
+                        this.displayError('login', 'Google login failed. Please try again.');
+                    }
+                },
+
+                loginWithFacebook() {
+                    // In a real app, you would integrate with the Facebook OAuth API
+                    try {
+                        // Simulate API call
+                        setTimeout(() => {
+                            const uniqueId = 'facebook_' + Date.now().toString(36);
+
+                            this.currentUser = {
+                                id: uniqueId,
+                                name: 'Facebook User',
+                                email: 'facebookuser@example.com',
+                                avatar: null
+                            };
+
+                            localStorage.setItem('aiChatUser', JSON.stringify(this.currentUser));
+                            this.updateAuthUI();
+                            this.hideModal('login');
+                            this.hideModal('signup');
+                        }, 800); // Simulate network delay
+                    } catch (error) {
+                        console.error('Facebook login error:', error);
+                        this.displayError('login', 'Facebook login failed. Please try again.');
+                    }
+                },
+
+                logout() {
+                    this.currentUser = null;
+                    localStorage.removeItem('aiChatUser');
+                    this.updateAuthUI();
+                    // Optionally redirect to home page or refresh the page
+                    // window.location.href = '/';
+                }
+            };
+
+            // Sidebar management
+            const SidebarManager = {
+                sidebarVisible: false,
+
+                init() {
+                    if (sidebarToggle) {
+                        sidebarToggle.addEventListener('click', (e) => {
+                            e.stopPropagation(); // Prevent document click from immediately closing
+                            this.toggleSidebar();
+                        });
+                    }
+
+                    if (closeSidebar) {
+                        closeSidebar.addEventListener('click', (e) => {
+                            e.stopPropagation(); // Prevent propagation
+                            this.closeSidebar();
+                        });
+                    }
+
+                    // Close sidebar when clicking outside, but use a more targeted approach
+                    document.addEventListener('click', (e) => {
+                        if (this.sidebarVisible &&
+                            sidebar &&
+                            !sidebar.contains(e.target) &&
+                            sidebarToggle &&
+                            !sidebarToggle.contains(e.target)) {
+                            this.closeSidebar();
+                        }
+                    });
+
+                    // Close sidebar on ESC key
+                    document.addEventListener('keydown', (e) => {
+                        if (e.key === 'Escape' && this.sidebarVisible) {
+                            this.closeSidebar();
+                        }
+                    });
+
+                    // Handle window resize - close sidebar on small screens
+                    window.addEventListener('resize', () => {
+                        if (window.innerWidth < 768 && this.sidebarVisible) {
+                            this.closeSidebar();
+                        }
+                    });
+                },
+
+                toggleSidebar() {
+                    if (appContainer) {
+                        this.sidebarVisible = !this.sidebarVisible;
+                        appContainer.classList.toggle('sidebar-open');
+                    }
+                },
+
+                openSidebar() {
+                    if (appContainer) {
+                        this.sidebarVisible = true;
+                        appContainer.classList.add('sidebar-open');
+                    }
+                },
+
+                closeSidebar() {
+                    if (appContainer) {
+                        this.sidebarVisible = false;
+                        appContainer.classList.remove('sidebar-open');
+                    }
+                }
+            };
+
+            // Initialize managers
+            AuthManager.init();
+            SidebarManager.init();
+        });
 
         // Theme Management with modern best practices
         const ThemeManager = {
