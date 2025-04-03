@@ -90,7 +90,7 @@
         }
 
         html {
-            font-size: 14px;
+            font-size: 16px;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
             scroll-behavior: smooth;
@@ -896,22 +896,257 @@
                 return typingIndicator;
             },
 
+
             createMessage(content, isUser = false) {
+                // Create message container
                 const messageDiv = document.createElement('div');
                 messageDiv.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
 
+                // Create message content
                 const messageContent = document.createElement('div');
                 messageContent.className = 'message-content';
 
                 const messageParagraph = document.createElement('p');
-                messageParagraph.style.whiteSpace = 'pre-line'; // This makes \n create line breaks
+                messageParagraph.style.whiteSpace = 'pre-line';
                 messageParagraph.textContent = content;
-
                 messageContent.appendChild(messageParagraph);
+
+                // Create actions container for the bottom of the message
+                const actionsContainer = document.createElement('div');
+                actionsContainer.className = 'message-actions';
+                actionsContainer.style.cssText = `
+        display: flex;
+        gap: 10px;
+        margin-top: 12px;
+        align-items: center;
+        justify-content: flex-start;
+        padding: 4px 0;
+        border-top: 1px solid var(--border-color, rgba(156, 163, 175, 0.1));
+    `;
+
+                // Create action buttons with modern styling
+                const actionButtons = [
+                    {
+                        name: 'copy',
+                        label: 'Copy text',
+                        icon: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>`,
+                        action: async () => {
+                            try {
+                                await navigator.clipboard.writeText(content);
+                                return { success: true, message: 'Copied!' };
+                            } catch (err) {
+                                console.error('Clipboard API failed:', err);
+
+                                if (fallbackCopy(content)) {
+                                    return { success: true, message: 'Copied!' };
+                                } else {
+                                    return { success: false, message: 'Copy failed' };
+                                }
+                            }
+                        }
+                    },
+                    {
+                        name: 'share',
+                        label: 'Share message',
+                        icon: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="18" cy="5" r="3"></circle>
+                <circle cx="6" cy="12" r="3"></circle>
+                <circle cx="18" cy="19" r="3"></circle>
+                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+            </svg>`,
+                        action: async () => {
+                            if (navigator.share) {
+                                try {
+                                    await navigator.share({
+                                        title: 'Shared Message',
+                                        text: content
+                                    });
+                                    return { success: true, message: 'Shared!' };
+                                } catch (err) {
+                                    console.error('Share failed:', err);
+                                    return { success: false, message: 'Share failed' };
+                                }
+                            } else {
+                                // Fallback to copy if Web Share API not available
+                                try {
+                                    await navigator.clipboard.writeText(content);
+                                    return { success: true, message: 'Copied for sharing!' };
+                                } catch (err) {
+                                    return { success: false, message: 'Share not supported' };
+                                }
+                            }
+                        }
+                    },
+                    {
+                        name: 'download',
+                        label: 'Download as text',
+                        icon: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>`,
+                        action: () => {
+                            try {
+                                const blob = new Blob([content], { type: 'text/plain' });
+                                const url = URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = `message-${new Date().toISOString().slice(0, 10)}.txt`;
+                                document.body.appendChild(a);
+                                a.click();
+                                document.body.removeChild(a);
+                                URL.revokeObjectURL(url);
+                                return { success: true, message: 'Downloaded!' };
+                            } catch (err) {
+                                console.error('Download failed:', err);
+                                return { success: false, message: 'Download failed' };
+                            }
+                        }
+                    }
+                ];
+
+                // Create and append all action buttons
+                actionButtons.forEach(button => {
+                    const buttonEl = createActionButton(button);
+                    actionsContainer.appendChild(buttonEl);
+                });
+
+                // Helper function to create action buttons
+                function createActionButton({ name, label, icon, action }) {
+                    const button = document.createElement('button');
+                    button.className = `action-button ${name}-button`;
+                    button.setAttribute('aria-label', label);
+                    button.innerHTML = icon;
+
+                    // Apply modern styling with CSS variables
+                    button.style.cssText = `
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary, #9ca3af);
+            transition: all 0.2s ease;
+            outline: none;
+            position: relative;
+        `;
+
+                    // Hover and focus states
+                    const applyActiveStyle = () => {
+                        button.style.background = 'var(--hover-bg, rgba(255, 255, 255, 0.1))';
+                        button.style.color = 'var(--text-primary, #ffffff)';
+                    };
+
+                    const removeActiveStyle = () => {
+                        if (!button.classList.contains('active')) {
+                            button.style.background = 'transparent';
+                            button.style.color = 'var(--text-secondary, #9ca3af)';
+                        }
+                    };
+
+                    button.addEventListener('mouseenter', applyActiveStyle);
+                    button.addEventListener('mouseleave', removeActiveStyle);
+                    button.addEventListener('focus', applyActiveStyle);
+                    button.addEventListener('blur', removeActiveStyle);
+
+                    // Click handler with feedback
+                    button.addEventListener('click', async (e) => {
+                        e.stopPropagation();
+
+                        const result = await action();
+                        showFeedback(button, result.message, result.success);
+                    });
+
+                    // Keyboard accessibility
+                    button.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            button.click();
+                        }
+                    });
+
+                    return button;
+                }
+
+                // Generic feedback function for all buttons
+                const showFeedback = (button, message, success = true) => {
+                    // Create or update tooltip
+                    let tooltip = button.querySelector('.action-tooltip');
+                    if (!tooltip) {
+                        tooltip = document.createElement('span');
+                        tooltip.className = 'action-tooltip';
+                        tooltip.style.cssText = `
+                position: absolute;
+                background: var(--tooltip-bg, #333);
+                color: var(--tooltip-text, white);
+                padding: 4px 8px;
+                border-radius: 4px;
+                font-size: 12px;
+                pointer-events: none;
+                opacity: 0;
+                transition: all 0.2s ease;
+                white-space: nowrap;
+                z-index: 100;
+                bottom: 100%;
+                left: 50%;
+                transform: translateX(-50%) translateY(-8px);
+                margin-bottom: 6px;
+            `;
+                        button.appendChild(tooltip);
+                    }
+
+                    tooltip.textContent = message;
+                    tooltip.style.opacity = '1';
+                    tooltip.style.transform = 'translateX(-50%) translateY(0)';
+
+                    // Visual feedback on the button
+                    button.style.color = success ? 'var(--success-color, #10b981)' : 'var(--error-color, #ef4444)';
+                    button.classList.add('active');
+
+                    // Reset after delay
+                    setTimeout(() => {
+                        tooltip.style.opacity = '0';
+                        tooltip.style.transform = 'translateX(-50%) translateY(-8px)';
+                        button.style.color = 'var(--text-secondary, #9ca3af)';
+                        button.classList.remove('active');
+                    }, 2000);
+                };
+
+                // Fallback copy method
+                const fallbackCopy = (text) => {
+                    const textarea = document.createElement('textarea');
+                    textarea.value = text;
+                    textarea.style.cssText = 'position: absolute; left: -9999px; top: 0; opacity: 0;';
+                    document.body.appendChild(textarea);
+
+                    try {
+                        textarea.select();
+                        textarea.setSelectionRange(0, 99999); // For mobile devices
+                        const successful = document.execCommand('copy');
+                        if (!successful) throw new Error('Copy command failed');
+                        return true;
+                    } catch (err) {
+                        console.error('Fallback copy failed:', err);
+                        return false;
+                    } finally {
+                        document.body.removeChild(textarea);
+                    }
+                };
+
+                // Assemble the message components
                 messageDiv.appendChild(messageContent);
+                messageDiv.appendChild(actionsContainer);
 
                 return messageDiv;
             },
+
 
             appendToChat(element) {
                 try {
@@ -1187,6 +1422,7 @@
                     "ឮហាក់ដូចជាមានបញ្ហាប្រឈម។ តើអ្នកចង់និយាយបន្ថែមអំពីវាទេ?"
                 ],
                 faqs: {
+
                     'តើបុណ្យចូលឆ្នាំខ្មែរប្រារព្ធនៅពេលណា?': "បុណ្យចូលឆ្នាំខ្មែរជាទូទៅប្រារព្ធឡើងនៅខែមេសារយៈពេលបីថ្ងៃ (ចាប់ពីថ្ងៃទី១៣ ឬ ១៤ ដល់ថ្ងៃទី១៥ ឬ ១៦)។ វាជាពិធីបុណ្យសាសនាមួយដែលជាពេលសម្រាប់ការជួបជុំគ្រួសារ ការទៅវត្តអារាម និងការលេងល្បែងប្រពៃណី។ ល្បែងប្រជាប្រិយរួមមាន៖ ចោលឈូង បោះអង្គុញ ទាញព្រ័ត្រ លាក់កន្សែង ប្រាប់វែង លេងសេះជ័យ និងល្បែងផ្សេងៗទៀត។ បុណ្យចូលឆ្នាំខ្មែរក៏រួមមានពិធីស្រង់ទឹកព្រះពុទ្ធរូប និងការស្រង់ទឹកចាស់ៗក្នុងគ្រួសារ ដើម្បីសុំពរជ័យ ក៏ដូចជាការរៀបចំម្ហូបអាហារពិសេសៗសម្រាប់ពិធីបុណ្យនេះ។",
                     // Previous questions remain the same
                     'តើលោក ហ៊ុន ម៉ាណែត នាយករដ្ឋមន្រ្តីរបស់កម្ពុជា ជានរណា?': "លោក ហ៊ុន ម៉ាណែត នាយករដ្ឋមន្ត្រីតែងតាំង ឈរនៅមុខរដ្ឋសភាជាតិ មុនពេលចូលរួមសម័យប្រជុំដំបូង សម្រាប់នីតិកាលទី ៧ នៃរដ្ឋសភា រាជធានីភ្នំពេញ ថ្ងៃទី ២១ ខែសីហា ឆ្នាំ ២០២៣។",
@@ -2775,6 +3011,7 @@
 
                     // សំណួរអំពីភូមិសាស្ត្រអាកាសធាតុប្រែប្រួល
                     'តើភូមិសាស្ត្រអាកាសធាតុប្រែប្រួលនៅកម្ពុជាមានលក្ខណៈដូចម្ដេច?': 'ភូមិសាស្ត្រអាកាសធាតុប្រែប្រួលនៅកម្ពុជាបង្ហាញដោយការកើនឡើងនៃសីតុណ្ហភាព ការប្រែប្រួលនៃរយៈពេលនិងអាំងតង់ស៊ីតេនៃរដូវវស្សា និងការកើនឡើងនៃព្រឹត្តិការណ៍អាកាសធាតុខ្លាំងៗ។',
+
 
 
 
