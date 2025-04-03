@@ -925,89 +925,532 @@
     `;
 
                 // Create action buttons with modern styling
+                // JavaScript for share functionality
                 const actionButtons = [
-                    {
-                        name: 'copy',
-                        label: 'Copy text',
-                        icon: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-            </svg>`,
-                        action: async () => {
-                            try {
-                                await navigator.clipboard.writeText(content);
-                                return { success: true, message: 'Copied!' };
-                            } catch (err) {
-                                console.error('Clipboard API failed:', err);
-
-                                if (fallbackCopy(content)) {
-                                    return { success: true, message: 'Copied!' };
-                                } else {
-                                    return { success: false, message: 'Copy failed' };
-                                }
-                            }
-                        }
-                    },
                     {
                         name: 'share',
                         label: 'Share message',
                         icon: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="18" cy="5" r="3"></circle>
-                <circle cx="6" cy="12" r="3"></circle>
-                <circle cx="18" cy="19" r="3"></circle>
-                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-            </svg>`,
+            <circle cx="18" cy="5" r="3"></circle>
+            <circle cx="6" cy="12" r="3"></circle>
+            <circle cx="18" cy="19" r="3"></circle>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+        </svg>`,
                         action: async () => {
-                            if (navigator.share) {
-                                try {
-                                    await navigator.share({
-                                        title: 'Shared Message',
-                                        text: content
-                                    });
-                                    return { success: true, message: 'Shared!' };
-                                } catch (err) {
-                                    console.error('Share failed:', err);
-                                    return { success: false, message: 'Share failed' };
+                            // Show sharing options modal/dropdown
+                            const shareOptions = [
+                                {
+                                    name: 'copy',
+                                    label: 'Copy to clipboard',
+                                    icon: 'clipboard',
+                                    action: async () => {
+                                        try {
+                                            await navigator.clipboard.writeText(content);
+                                            return { success: true, message: 'Copied to clipboard!' };
+                                        } catch (err) {
+                                            console.error('Copy failed:', err);
+                                            return { success: false, message: 'Copy failed' };
+                                        }
+                                    }
+                                },
+                                {
+                                    name: 'native-share',
+                                    label: 'Share via device',
+                                    icon: 'share',
+                                    action: async () => {
+                                        if (navigator.share) {
+                                            try {
+                                                await navigator.share({
+                                                    title: 'Shared Message',
+                                                    text: content
+                                                });
+                                                return { success: true, message: 'Shared!' };
+                                            } catch (err) {
+                                                console.error('Share failed:', err);
+                                                return { success: false, message: 'Share canceled' };
+                                            }
+                                        } else {
+                                            return { success: false, message: 'Native sharing not supported on this device' };
+                                        }
+                                    }
+                                },
+                                {
+                                    name: 'email',
+                                    label: 'Share via email',
+                                    icon: 'mail',
+                                    action: () => {
+                                        const subject = encodeURIComponent('Shared Message');
+                                        const body = encodeURIComponent(content);
+                                        window.open(`mailto:?subject=${subject}&body=${body}`);
+                                        return { success: true, message: 'Email client opened' };
+                                    }
+                                },
+                                {
+                                    name: 'twitter',
+                                    label: 'Share to Twitter',
+                                    icon: 'twitter',
+                                    action: () => {
+                                        const text = encodeURIComponent(content.substring(0, 280));
+                                        window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank');
+                                        return { success: true, message: 'Twitter opened' };
+                                    }
+                                },
+                                {
+                                    name: 'facebook',
+                                    label: 'Share to Facebook',
+                                    icon: 'facebook',
+                                    action: () => {
+                                        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`, '_blank');
+                                        return { success: true, message: 'Facebook opened' };
+                                    }
+                                },
+                                {
+                                    name: 'linkedin',
+                                    label: 'Share to LinkedIn',
+                                    icon: 'linkedin',
+                                    action: () => {
+                                        const text = encodeURIComponent(content);
+                                        window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}&summary=${text}`, '_blank');
+                                        return { success: true, message: 'LinkedIn opened' };
+                                    }
+                                },
+                                {
+                                    name: 'whatsapp',
+                                    label: 'Share via WhatsApp',
+                                    icon: 'message-circle',
+                                    action: () => {
+                                        const text = encodeURIComponent(content);
+                                        window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
+                                        return { success: true, message: 'WhatsApp opened' };
+                                    }
+                                },
+                                {
+                                    name: 'telegram',
+                                    label: 'Share via Telegram',
+                                    icon: 'send',
+                                    action: () => {
+                                        const text = encodeURIComponent(content);
+                                        window.open(`https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${text}`, '_blank');
+                                        return { success: true, message: 'Telegram opened' };
+                                    }
                                 }
-                            } else {
-                                // Fallback to copy if Web Share API not available
-                                try {
-                                    await navigator.clipboard.writeText(content);
-                                    return { success: true, message: 'Copied for sharing!' };
-                                } catch (err) {
-                                    return { success: false, message: 'Share not supported' };
-                                }
-                            }
+                            ];
+
+                            // Add CSS to the document
+                            addShareMenuStyles();
+
+                            // Display share options menu
+                            return showShareOptionsMenu(shareOptions);
                         }
                     },
-                    {
-                        name: 'download',
-                        label: 'Download as text',
-                        icon: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="7 10 12 15 17 10"></polyline>
-                <line x1="12" y1="15" x2="12" y2="3"></line>
-            </svg>`,
-                        action: () => {
-                            try {
-                                const blob = new Blob([content], { type: 'text/plain' });
-                                const url = URL.createObjectURL(blob);
-                                const a = document.createElement('a');
-                                a.href = url;
-                                a.download = `message-${new Date().toISOString().slice(0, 10)}.txt`;
-                                document.body.appendChild(a);
-                                a.click();
-                                document.body.removeChild(a);
-                                URL.revokeObjectURL(url);
-                                return { success: true, message: 'Downloaded!' };
-                            } catch (err) {
-                                console.error('Download failed:', err);
-                                return { success: false, message: 'Download failed' };
-                            }
-                        }
-                    }
                 ];
+
+                // Helper function to add CSS styles for the share menu
+                function addShareMenuStyles() {
+                    // Check if styles already exist
+                    if (document.getElementById('share-menu-styles')) return;
+
+                    const styles = document.createElement('style');
+                    styles.id = 'share-menu-styles';
+                    styles.textContent = `
+        /* Share menu overlay */
+        .share-menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            animation: fadeIn 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        /* Share options menu */
+        .share-options-menu {
+            background-color: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15), 0 2px 10px rgba(0, 0, 0, 0.12);
+            width: 320px;
+            max-width: 90vw;
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: 20px 0;
+            animation: slideUp 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            scroll-behavior: smooth;
+            scrollbar-width: thin;
+        }
+        
+        .share-options-menu::-webkit-scrollbar {
+            width: 5px;
+        }
+        
+        .share-options-menu::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        .share-options-menu::-webkit-scrollbar-thumb {
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 20px;
+        }
+        
+        /* Dark mode support */
+        @media (prefers-color-scheme: dark) {
+            .share-options-menu {
+                background-color: #222222;
+                color: #ffffff;
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4), 0 2px 10px rgba(0, 0, 0, 0.35);
+            }
+            
+            .share-options-menu::-webkit-scrollbar-thumb {
+                background-color: rgba(255, 255, 255, 0.2);
+            }
+        }
+        
+        /* Menu title */
+        .share-menu-title {
+            padding: 0 24px 16px;
+            margin: 0 0 12px;
+            font-size: 20px;
+            font-weight: 600;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+            text-align: center;
+            color: #111111;
+        }
+        
+        @media (prefers-color-scheme: dark) {
+            .share-menu-title {
+                border-color: rgba(255, 255, 255, 0.1);
+                color: #ffffff;
+            }
+        }
+        
+        /* Share option buttons */
+        .share-option-button {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            padding: 14px 24px;
+            border: none;
+            background: none;
+            text-align: left;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            color: #333333;
+        }
+        
+        .share-option-button:hover {
+            background-color: rgba(0, 0, 0, 0.04);
+        }
+        
+        .share-option-button:active {
+            background-color: rgba(0, 0, 0, 0.08);
+            transform: scale(0.98);
+        }
+        
+        @media (prefers-color-scheme: dark) {
+            .share-option-button {
+                color: #f0f0f0;
+            }
+            .share-option-button:hover {
+                background-color: rgba(255, 255, 255, 0.08);
+            }
+            .share-option-button:active {
+                background-color: rgba(255, 255, 255, 0.12);
+            }
+        }
+        
+        /* Icon container */
+        .share-option-icon {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 40px;
+            height: 40px;
+            margin-right: 16px;
+            border-radius: 12px;
+            background-color: #f0f0f0;
+            transition: transform 0.2s ease;
+        }
+        
+        .share-option-button:hover .share-option-icon {
+            transform: scale(1.05);
+        }
+        
+        @media (prefers-color-scheme: dark) {
+            .share-option-icon {
+                background-color: rgba(255, 255, 255, 0.1);
+            }
+        }
+        
+        /* Platform-specific icon colors with subtle gradients */
+        .share-option-icon.copy { 
+            background: linear-gradient(135deg, #43A047, #2E7D32); 
+        }
+        .share-option-icon.native-share { 
+            background: linear-gradient(135deg, #78909C, #455A64); 
+        }
+        .share-option-icon.email { 
+            background: linear-gradient(135deg, #FF7043, #E64A19); 
+        }
+        .share-option-icon.twitter { 
+            background: linear-gradient(135deg, #29B6F6, #0288D1); 
+        }
+        .share-option-icon.facebook { 
+            background: linear-gradient(135deg, #5C6BC0, #3949AB); 
+        }
+        .share-option-icon.linkedin { 
+            background: linear-gradient(135deg, #039BE5, #0277BD); 
+        }
+        .share-option-icon.whatsapp { 
+            background: linear-gradient(135deg, #4CAF50, #2E7D32); 
+        }
+        .share-option-icon.telegram { 
+            background: linear-gradient(135deg, #29B6F6, #0288D1); 
+        }
+        
+        .share-option-icon svg {
+            color: white;
+            stroke: white;
+            width: 18px;
+            height: 18px;
+        }
+        
+        /* Options container */
+        .share-options-content {
+            margin: 8px 0;
+        }
+        
+        /* Footer area */
+        .share-options-footer {
+            padding: 16px 24px 0;
+            margin-top: 12px;
+            border-top: 1px solid rgba(0, 0, 0, 0.08);
+        }
+        
+        @media (prefers-color-scheme: dark) {
+            .share-options-footer {
+                border-color: rgba(255, 255, 255, 0.1);
+            }
+        }
+        
+        /* Close button */
+        .share-option-close {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            background-color: rgba(0, 0, 0, 0.05);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #333333;
+        }
+        
+        .share-option-close:hover {
+            background-color: rgba(0, 0, 0, 0.08);
+        }
+        
+        .share-option-close:active {
+            transform: scale(0.98);
+        }
+        
+        @media (prefers-color-scheme: dark) {
+            .share-option-close {
+                background-color: rgba(255, 255, 255, 0.1);
+                color: #f0f0f0;
+            }
+            .share-option-close:hover {
+                background-color: rgba(255, 255, 255, 0.15);
+            }
+        }
+        
+        /* Toast notification for feedback */
+        .share-toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background-color: #333333;
+            color: white;
+            padding: 14px 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1001;
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            min-width: 200px;
+            justify-content: center;
+        }
+        
+        .share-toast.success {
+            background-color: #43A047;
+        }
+        
+        .share-toast.error {
+            background-color: #E53935;
+        }
+        
+        .share-toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideUp {
+            from { 
+                transform: translateY(30px); 
+                opacity: 0; 
+            }
+            to { 
+                transform: translateY(0); 
+                opacity: 1; 
+            }
+        }
+    `;
+
+                    document.head.appendChild(styles);
+                }
+
+                // Helper function to show toast notification
+                function showToast(message, success = true) {
+                    // Remove any existing toast
+                    const existingToast = document.querySelector('.share-toast');
+                    if (existingToast) {
+                        existingToast.remove();
+                    }
+
+                    // Create new toast
+                    const toast = document.createElement('div');
+                    toast.className = success ? 'share-toast success' : 'share-toast error';
+                    toast.textContent = message;
+
+                    document.body.appendChild(toast);
+
+                    // Show the toast
+                    setTimeout(() => {
+                        toast.classList.add('show');
+                    }, 10);
+
+                    // Hide the toast after 3 seconds
+                    setTimeout(() => {
+                        toast.classList.remove('show');
+                        setTimeout(() => {
+                            toast.remove();
+                        }, 300);
+                    }, 3000);
+                }
+
+                // Helper function to display share options to the user
+                function showShareOptionsMenu(options) {
+                    return new Promise((resolve) => {
+                        // Create overlay
+                        const overlay = document.createElement('div');
+                        overlay.className = 'share-menu-overlay';
+
+                        // Create menu
+                        const menu = document.createElement('div');
+                        menu.className = 'share-options-menu';
+
+                        // Add title
+                        const title = document.createElement('h3');
+                        title.className = 'share-menu-title';
+                        title.textContent = 'Share via';
+                        menu.appendChild(title);
+
+                        // Create content container
+                        const content = document.createElement('div');
+                        content.className = 'share-options-content';
+
+                        // Add options
+                        options.forEach(option => {
+                            const button = document.createElement('button');
+                            button.className = 'share-option-button';
+
+                            const iconContainer = document.createElement('div');
+                            iconContainer.className = `share-option-icon ${option.name}`;
+                            iconContainer.innerHTML = getIconForOption(option.icon);
+
+                            const label = document.createElement('span');
+                            label.textContent = option.label;
+
+                            button.appendChild(iconContainer);
+                            button.appendChild(label);
+
+                            button.onclick = async () => {
+                                overlay.remove();
+                                const result = await option.action();
+                                showToast(result.message, result.success);
+                                resolve(result);
+                            };
+
+                            content.appendChild(button);
+                        });
+
+                        menu.appendChild(content);
+
+                        // Add footer with close button
+                        const footer = document.createElement('div');
+                        footer.className = 'share-options-footer';
+
+                        const closeButton = document.createElement('button');
+                        closeButton.className = 'share-option-close';
+                        closeButton.textContent = 'Cancel';
+                        closeButton.onclick = () => {
+                            overlay.remove();
+                            resolve({ success: false, message: 'Share canceled' });
+                        };
+
+                        footer.appendChild(closeButton);
+                        menu.appendChild(footer);
+
+                        // Close when clicking overlay
+                        overlay.onclick = (e) => {
+                            if (e.target === overlay) {
+                                overlay.remove();
+                                resolve({ success: false, message: 'Share canceled' });
+                            }
+                        };
+
+                        // Add menu to overlay
+                        overlay.appendChild(menu);
+
+                        // Add overlay to document
+                        document.body.appendChild(overlay);
+                    });
+                }
+
+                // Helper function to get SVG icons based on icon name
+                function getIconForOption(iconName) {
+                    const icons = {
+                        clipboard: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>`,
+                        share: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>`,
+                        mail: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>`,
+                        twitter: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg>`,
+                        facebook: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>`,
+                        linkedin: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>`,
+                        'message-circle': `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>`,
+                        send: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>`
+                    };
+
+                    return icons[iconName] || icons.share;
+                }
 
                 // Create and append all action buttons
                 actionButtons.forEach(button => {
